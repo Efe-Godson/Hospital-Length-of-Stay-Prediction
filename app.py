@@ -4,7 +4,7 @@ import streamlit as st
 
 from src.ui import theme
 from src.ui.icons import icon
-from src.ui.pages import about, explainability, home, performance, prediction
+from src.ui.pages import about, home, insights, prediction
 
 st.set_page_config(
     page_title="Hospital Length of Stay Predictor",
@@ -18,8 +18,7 @@ theme.inject_theme()
 PAGES = {
     "Home": home,
     "Prediction": prediction,
-    "Model Performance": performance,
-    "Explainability": explainability,
+    "Model Insights": insights,
     "About": about,
 }
 PAGE_NAMES = list(PAGES.keys())

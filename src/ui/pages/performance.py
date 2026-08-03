@@ -5,14 +5,13 @@ import streamlit as st
 
 from src import config
 from src.model.loader import load_model_results
-from src.ui.components import page_header, render_metric_row, section_title
-from src.ui.icons import icon as get_icon
+from src.ui.components import render_metric_row, section_title
 
 
-def _bar_chart(df, metric: str, title: str, lower_is_better: bool = True) -> go.Figure:
+def _bar_chart(df, metric: str, title: str, highlight: str, lower_is_better: bool = True) -> go.Figure:
     sorted_df = df.sort_values(metric, ascending=lower_is_better)
     colors = [
-        config.COLORS["primary"] if model == "Random Forest" else config.COLORS["border"]
+        config.COLORS["primary"] if model == highlight else config.COLORS["border"]
         for model in sorted_df["Model"]
     ]
     fig = go.Figure(
@@ -38,22 +37,31 @@ def _bar_chart(df, metric: str, title: str, lower_is_better: bool = True) -> go.
     return fig
 
 
-def render() -> None:
-    page_header(
-        "Model Performance",
-        "Comparison of regression models evaluated during development.",
-        icon=get_icon("chart-bar", 26),
-    )
-
+def render_body() -> None:
     results = load_model_results()
-    best = results.sort_values("RMSE").iloc[0]
+    results_sorted = results.sort_values("RMSE").reset_index(drop=True)
+    model_names = results_sorted["Model"].tolist()
+    best_name = model_names[0]
+
+    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
+    section_title("Model")
+    selected_name = st.selectbox(
+        "View metrics for",
+        model_names,
+        index=model_names.index(best_name),
+        help="Random Forest is the model deployed for prediction, but you can "
+        "view how any of the five evaluated models performed.",
+    )
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    selected = results_sorted[results_sorted["Model"] == selected_name].iloc[0]
 
     render_metric_row(
         [
-            {"label": "Selected Model", "value": best["Model"]},
-            {"label": "MAE", "value": f"{best['MAE']:.2f}"},
-            {"label": "RMSE", "value": f"{best['RMSE']:.2f}"},
-            {"label": "R²", "value": f"{best['R²']:.2f}"},
+            {"label": "Selected Model", "value": selected["Model"]},
+            {"label": "MAE", "value": f"{selected['MAE']:.2f}"},
+            {"label": "RMSE", "value": f"{selected['RMSE']:.2f}"},
+            {"label": "R²", "value": f"{selected['R²']:.2f}"},
         ]
     )
 
@@ -61,7 +69,7 @@ def render() -> None:
     st.markdown("<div class='app-card'>", unsafe_allow_html=True)
     section_title("Model Comparison Table")
     st.dataframe(
-        results.sort_values("RMSE").reset_index(drop=True),
+        results_sorted,
         use_container_width=True,
         hide_index=True,
     )
@@ -71,15 +79,21 @@ def render() -> None:
     section_title("Prediction Error Comparison")
     c1, c2 = st.columns(2)
     with c1:
-        st.plotly_chart(_bar_chart(results, "RMSE", "RMSE by Model (lower is better)"), use_container_width=True)
+        st.plotly_chart(
+            _bar_chart(results, "RMSE", "RMSE by Model (lower is better)", selected_name),
+            use_container_width=True,
+        )
     with c2:
-        st.plotly_chart(_bar_chart(results, "MAE", "MAE by Model (lower is better)"), use_container_width=True)
+        st.plotly_chart(
+            _bar_chart(results, "MAE", "MAE by Model (lower is better)", selected_name),
+            use_container_width=True,
+        )
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("<div class='app-card'>", unsafe_allow_html=True)
     section_title("Training Time Comparison")
     st.plotly_chart(
-        _bar_chart(results, "Training Time (s)", "Training Time by Model (seconds)"),
+        _bar_chart(results, "Training Time (s)", "Training Time by Model (seconds)", selected_name),
         use_container_width=True,
     )
     st.markdown("</div>", unsafe_allow_html=True)

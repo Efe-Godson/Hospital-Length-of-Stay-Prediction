@@ -34,11 +34,10 @@ def render() -> None:
 
     cards = [
         ("stethoscope", "Prediction", "Enter patient details and generate an individual length-of-stay estimate with explanation."),
-        ("chart-bar", "Model Performance", "Compare the five regression models evaluated and see why Random Forest was selected."),
-        ("search", "Explainability", "Understand which patient factors most influence the model's predictions using SHAP."),
+        ("chart-bar", "Model Insights", "Compare the five regression models evaluated and explore SHAP explainability."),
     ]
 
-    cols = st.columns(3)
+    cols = st.columns(2)
     for col, (icon_name, title, desc) in zip(cols, cards):
         with col:
             st.markdown(nav_card(get_icon(icon_name, 24), title, desc), unsafe_allow_html=True)

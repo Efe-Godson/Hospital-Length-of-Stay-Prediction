@@ -78,7 +78,7 @@ _CSS = f"""
 
     /* Generic card */
     .app-card {{
-        background: var(--clr-surface);
+        background: rgba(15, 110, 99, 0.06);
         border: 1px solid var(--clr-border);
         border-radius: 16px;
         padding: 1.5rem 1.75rem;

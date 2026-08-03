@@ -6,17 +6,10 @@ import shap
 import streamlit as st
 
 from src.model.global_explain import compute_global_shap
-from src.ui.components import page_header, section_title
-from src.ui.icons import icon as get_icon
+from src.ui.components import section_title
 
 
-def render() -> None:
-    page_header(
-        "Model Explainability",
-        "Understanding which patient factors drive the model's predictions.",
-        icon=get_icon("search", 26),
-    )
-
+def render_body() -> None:
     st.markdown("<div class='app-card'>", unsafe_allow_html=True)
     section_title("What is SHAP?")
     st.markdown(
