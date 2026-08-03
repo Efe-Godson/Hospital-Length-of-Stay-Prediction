@@ -128,8 +128,12 @@ _CSS = f"""
         transform: translateY(-2px);
     }}
     .nav-card .nav-icon {{
-        font-size: 1.6rem;
+        color: var(--clr-primary);
         margin-bottom: 0.5rem;
+    }}
+    .nav-card .nav-icon svg {{
+        width: 26px;
+        height: 26px;
     }}
     .nav-card h4 {{
         margin: 0 0 0.35rem 0;

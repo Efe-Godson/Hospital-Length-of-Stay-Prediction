@@ -6,6 +6,7 @@ import streamlit as st
 from src import config
 from src.model.loader import load_model_results
 from src.ui.components import page_header, render_metric_row, section_title
+from src.ui.icons import icon as get_icon
 
 
 def _bar_chart(df, metric: str, title: str, lower_is_better: bool = True) -> go.Figure:
@@ -41,7 +42,7 @@ def render() -> None:
     page_header(
         "Model Performance",
         "Comparison of regression models evaluated during development.",
-        icon="📊",
+        icon=get_icon("chart-bar", 26),
     )
 
     results = load_model_results()

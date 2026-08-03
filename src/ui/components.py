@@ -4,8 +4,16 @@ import streamlit as st
 
 
 def page_header(title: str, subtitle: str = "", icon: str = "") -> None:
-    icon_html = f"{icon} " if icon else ""
-    st.markdown(f"## {icon_html}{title}")
+    icon_html = (
+        f"<span style='display:inline-flex; color: var(--clr-primary); "
+        f"margin-right: 0.5rem;'>{icon}</span>"
+        if icon
+        else ""
+    )
+    st.markdown(
+        f"<h2 style='display:flex; align-items:center;'>{icon_html}{title}</h2>",
+        unsafe_allow_html=True,
+    )
     if subtitle:
         st.markdown(
             f"<p style='color: var(--clr-text-muted); margin-top: -0.5rem;'>{subtitle}</p>",

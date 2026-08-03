@@ -3,13 +3,14 @@
 import streamlit as st
 
 from src.ui.components import nav_card, page_header
+from src.ui.icons import icon as get_icon
 
 
 def render() -> None:
     page_header(
         "Hospital Length of Stay Predictor",
         "A clinical decision-support tool for estimating patient hospitalisation duration.",
-        icon="🏥",
+        icon=get_icon("hospital", 26),
     )
 
     st.markdown(
@@ -40,20 +41,20 @@ def render() -> None:
     st.markdown("#### Explore the application")
 
     cards = [
-        ("🩺", "Prediction", "Enter patient details and generate an individual length-of-stay estimate with explanation."),
-        ("📊", "Model Performance", "Compare the five regression models evaluated and see why Random Forest was selected."),
-        ("🔍", "Explainability", "Understand which patient factors most influence the model's predictions using SHAP."),
-        ("ℹ️", "About", "Read about the project workflow, dataset and technologies used."),
+        ("stethoscope", "Prediction", "Enter patient details and generate an individual length-of-stay estimate with explanation."),
+        ("chart-bar", "Model Performance", "Compare the five regression models evaluated and see why Random Forest was selected."),
+        ("search", "Explainability", "Understand which patient factors most influence the model's predictions using SHAP."),
+        ("info", "About", "Read about the project workflow, dataset and technologies used."),
     ]
 
     cols = st.columns(4)
-    for col, (icon, title, desc) in zip(cols, cards):
+    for col, (icon_name, title, desc) in zip(cols, cards):
         with col:
-            st.markdown(nav_card(icon, title, desc), unsafe_allow_html=True)
+            st.markdown(nav_card(get_icon(icon_name, 24), title, desc), unsafe_allow_html=True)
 
     st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
     st.info(
         "Use the navigation menu in the sidebar to move between pages. "
         "Start with **Prediction** to generate a length-of-stay estimate.",
-        icon="👈",
+        icon=":material/arrow_back:",
     )

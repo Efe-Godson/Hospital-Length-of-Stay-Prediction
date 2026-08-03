@@ -4,10 +4,11 @@ import streamlit as st
 
 from src.model.loader import load_raw_dataset
 from src.ui.components import page_header, render_metric_row, section_title
+from src.ui.icons import icon as get_icon
 
 
 def render() -> None:
-    page_header("About This Project", icon="ℹ️")
+    page_header("About This Project", icon=get_icon("info", 26))
 
     st.markdown("<div class='app-card'>", unsafe_allow_html=True)
     section_title("Project Overview")

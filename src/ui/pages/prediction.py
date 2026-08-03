@@ -7,6 +7,7 @@ import streamlit as st
 from src.model.loader import load_deployment_package
 from src.model.predictor import PatientInput, explain, predict, top_contributing_features
 from src.ui.components import page_header, render_metric_row, section_title
+from src.ui.icons import icon as get_icon
 from src.utils.formatting import format_days, format_signed, yes_no
 
 
@@ -131,7 +132,7 @@ def render() -> None:
     page_header(
         "Length of Stay Prediction",
         "Enter patient information to generate an individual prediction.",
-        icon="🩺",
+        icon=get_icon("stethoscope", 26),
     )
 
     package = load_deployment_package()
