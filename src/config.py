@@ -1,0 +1,95 @@
+"""
+Central constants for the Hospital Length of Stay application.
+
+These values mirror the preprocessing performed in
+`Hospital_Length_of_Stay_Prediction_Using_Machine_Learning.ipynb` and must stay
+in sync with it. They are not re-derived at runtime so that the app never
+drifts from the notebook's source-of-truth encoding.
+"""
+
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+
+ARTIFACTS_DIR = ROOT_DIR / "artifacts"
+DEPLOYMENT_PACKAGE_PATH = ARTIFACTS_DIR / "hospital_los_predictor.pkl"
+MODEL_RESULTS_PATH = ARTIFACTS_DIR / "model_results.csv"
+MODEL_DATASET_PATH = ARTIFACTS_DIR / "model_dataset.csv"
+RAW_DATASET_PATH = ROOT_DIR / "data" / "healthcare_risk_factors_dataset.csv"
+
+TARGET_COLUMN = "LengthOfStay"
+
+# Medical Condition categories as they appear in the raw dataset.
+# "Arthritis" is the baseline category dropped by pd.get_dummies(drop_first=True)
+# in the notebook, so it is never represented by its own column and every
+# Medical Condition_* dummy is 0 when a patient has Arthritis.
+MEDICAL_CONDITIONS = [
+    "Arthritis",
+    "Asthma",
+    "Cancer",
+    "Diabetes",
+    "Healthy",
+    "Hypertension",
+    "Obesity",
+]
+MEDICAL_CONDITION_BASELINE = "Arthritis"
+
+GENDERS = ["Female", "Male"]
+GENDER_BASELINE = "Female"
+
+# Exact column order expected by the fitted scaler / model, taken from the
+# notebook's `X.columns.tolist()` (also verified against artifacts/model_dataset.csv).
+FEATURE_ORDER = [
+    "Age",
+    "Glucose",
+    "Blood Pressure",
+    "BMI",
+    "Oxygen Saturation",
+    "Cholesterol",
+    "Triglycerides",
+    "HbA1c",
+    "Smoking",
+    "Alcohol",
+    "Physical Activity",
+    "Diet Score",
+    "Family History",
+    "Stress Level",
+    "Sleep Hours",
+    "Gender_Male",
+    "Medical Condition_Asthma",
+    "Medical Condition_Cancer",
+    "Medical Condition_Diabetes",
+    "Medical Condition_Healthy",
+    "Medical Condition_Hypertension",
+    "Medical Condition_Obesity",
+]
+
+# Display-friendly labels for the one-hot dummy columns, matching the renames
+# applied to SHAP plots in the notebook (cell "Create display-friendly feature names").
+DISPLAY_NAME_OVERRIDES = {
+    "Gender_Male": "Male",
+    "Medical Condition_Asthma": "Asthma",
+    "Medical Condition_Cancer": "Cancer",
+    "Medical Condition_Diabetes": "Diabetes",
+    "Medical Condition_Healthy": "Healthy",
+    "Medical Condition_Hypertension": "Hypertension",
+    "Medical Condition_Obesity": "Obesity",
+}
+
+SHAP_SAMPLE_SIZE = 100
+RANDOM_STATE = 42
+
+# Healthcare analytics colour palette.
+COLORS = {
+    "primary": "#0F6E63",       # deep teal
+    "primary_light": "#14A38C",
+    "accent": "#2D6CDF",        # clinical blue
+    "background": "#F5F8F8",
+    "surface": "#FFFFFF",
+    "text": "#1B2B2A",
+    "text_muted": "#5B6B6A",
+    "border": "#E1E8E7",
+    "success": "#1E8E5A",
+    "warning": "#C77F1A",
+    "danger": "#C0392B",
+}
