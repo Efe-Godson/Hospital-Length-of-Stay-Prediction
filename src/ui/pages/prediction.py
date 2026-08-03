@@ -106,7 +106,7 @@ def _render_summary(patient: PatientInput) -> None:
             for label, value in chunk:
                 st.markdown(
                     f"<div style='display:flex; justify-content:space-between; "
-                    f"padding: 0.35rem 0; border-bottom: 1px solid var(--clr-border); font-size:0.9rem;'>"
+                    f"padding: 0.35rem 0; border-bottom: 1px solid rgba(15, 110, 99, 0.3); font-size:0.9rem;'>"
                     f"<span style='color:var(--clr-text-muted);'>{label}</span>"
                     f"<span style='font-weight:600;'>{value}</span></div>",
                     unsafe_allow_html=True,

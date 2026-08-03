@@ -30,7 +30,11 @@ _CSS = f"""
         background: var(--clr-bg);
     }}
 
-    #MainMenu, footer, header {{ visibility: hidden; }}
+    #MainMenu, footer {{ visibility: hidden; }}
+    header[data-testid="stHeader"] {{
+        background: transparent;
+        box-shadow: none;
+    }}
 
     .block-container {{
         padding-top: 2rem;
@@ -121,6 +125,9 @@ _CSS = f"""
         border-radius: 16px;
         padding: 1.4rem 1.5rem;
         height: 100%;
+        min-height: 190px;
+        display: flex;
+        flex-direction: column;
         transition: box-shadow 0.15s ease, transform 0.15s ease;
     }}
     .nav-card:hover {{
@@ -142,6 +149,7 @@ _CSS = f"""
         color: var(--clr-text-muted);
         font-size: 0.9rem;
         margin: 0;
+        flex-grow: 1;
     }}
 
     /* Pill / badge */
@@ -164,7 +172,9 @@ _CSS = f"""
     }}
 
     hr {{
-        border-color: var(--clr-border);
+        border: none;
+        border-top: 1px solid var(--clr-primary);
+        opacity: 0.35;
     }}
 
     /* Dataframe / table polish */
