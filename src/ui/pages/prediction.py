@@ -11,6 +11,25 @@ from src.ui.icons import icon as get_icon
 from src.utils.formatting import format_days, format_signed, yes_no
 
 
+def _model_selector(package: dict) -> str:
+    model_names = list(package.get("models", {}).keys())
+    if not model_names:
+        return package.get("default_model_name", "Random Forest")
+
+    default_name = package.get("default_model_name", model_names[0])
+    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
+    section_title("Model")
+    selected = st.selectbox(
+        "Prediction model",
+        model_names,
+        index=model_names.index(default_name),
+        help="Random Forest is the model recommended in this project's evaluation, "
+        "but any of the five compared models can be used to generate a prediction.",
+    )
+    st.markdown("</div>", unsafe_allow_html=True)
+    return selected
+
+
 def _entry_form(package: dict) -> PatientInput | None:
     st.markdown("<div class='app-card'>", unsafe_allow_html=True)
     section_title("Demographics")
@@ -137,15 +156,17 @@ def render() -> None:
 
     package = load_deployment_package()
 
+    model_name = _model_selector(package)
     patient = _entry_form(package)
 
     if patient is not None:
-        prediction, scaled_row = predict(patient, package)
-        explanation = explain(scaled_row, package)
+        prediction, scaled_row = predict(patient, package, model_name)
+        explanation = explain(scaled_row, package, model_name)
         st.session_state["last_prediction"] = {
             "patient": patient,
             "prediction": prediction,
             "explanation": explanation,
+            "model_name": model_name,
         }
 
     state = st.session_state.get("last_prediction")
@@ -153,7 +174,12 @@ def render() -> None:
         return
 
     st.markdown("<div style='height: 0.5rem;'></div>", unsafe_allow_html=True)
-    st.markdown("### Prediction Result")
+    st.markdown(
+        f"### Prediction Result "
+        f"<span class='pill' style='vertical-align:middle; margin-left:0.5rem;'>"
+        f"{state.get('model_name', 'Random Forest')}</span>",
+        unsafe_allow_html=True,
+    )
 
     baseline = float(state["explanation"].base_values)
     render_metric_row(

@@ -19,6 +19,16 @@ import pandas as pd
 import shap
 
 from src import config
+from src.model.loader import load_model_dataset
+
+# Model classes SHAP's TreeExplainer supports directly. Anything else (e.g.
+# Linear Regression) falls back to shap.Explainer's model-agnostic path.
+_TREE_MODEL_TYPES = (
+    "RandomForestRegressor",
+    "GradientBoostingRegressor",
+    "DecisionTreeRegressor",
+    "XGBRegressor",
+)
 
 
 @dataclass
@@ -84,14 +94,24 @@ def build_feature_row(
     return pd.DataFrame([row], columns=feature_names)
 
 
-def predict(patient: PatientInput, package: dict) -> tuple[float, pd.DataFrame]:
-    """Scale the patient row with the fitted scaler and predict with the fitted model.
+def resolve_model(package: dict, model_name: str | None):
+    """Return the requested model, falling back to the deployed default."""
+    models = package.get("models")
+    if models and model_name in models:
+        return models[model_name]
+    return package["model"]
+
+
+def predict(
+    patient: PatientInput, package: dict, model_name: str | None = None
+) -> tuple[float, pd.DataFrame]:
+    """Scale the patient row with the fitted scaler and predict with the chosen model.
 
     Returns the predicted length of stay (days) and the scaled feature row
     (needed downstream for SHAP explanation).
     """
     feature_names = package["feature_names"]
-    model = package["model"]
+    model = resolve_model(package, model_name)
     scaler = package["scaler"]
     medical_conditions = package["medical_conditions"]
 
@@ -103,21 +123,43 @@ def predict(patient: PatientInput, package: dict) -> tuple[float, pd.DataFrame]:
     return prediction, scaled_row
 
 
-def explain(scaled_row: pd.DataFrame, package: dict) -> shap.Explanation:
-    """Generate a SHAP explanation for a single scaled patient row.
+def _background_sample(package: dict) -> pd.DataFrame:
+    """Small scaled sample used as a SHAP background/masker for non-tree models."""
+    feature_names = package["feature_names"]
+    scaler = package["scaler"]
+    dataset = load_model_dataset()
+    sample = dataset[feature_names].sample(
+        n=min(config.SHAP_SAMPLE_SIZE, len(dataset)), random_state=config.RANDOM_STATE
+    )
+    scaled = scaler.transform(sample)
+    return pd.DataFrame(scaled, columns=feature_names, index=sample.index)
 
-    Uses shap.TreeExplainer on the deployed Random Forest model, matching the
-    notebook's explainability methodology exactly.
+
+def explain(
+    scaled_row: pd.DataFrame, package: dict, model_name: str | None = None
+) -> shap.Explanation:
+    """Generate a SHAP explanation for a single scaled patient row, for the chosen model.
+
+    Tree-based models (Random Forest, Gradient Boosting, Decision Tree,
+    XGBoost) use shap.TreeExplainer, matching the notebook's methodology
+    exactly. Non-tree models (Linear Regression) fall back to shap.Explainer's
+    model-agnostic path with a small background sample as the masker.
     """
-    model = package["model"]
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(scaled_row)
-
+    model = resolve_model(package, model_name)
     display_row = scaled_row.rename(columns=config.DISPLAY_NAME_OVERRIDES)
-    base_value = np.asarray(explainer.expected_value).reshape(-1)[0]
+
+    if type(model).__name__ in _TREE_MODEL_TYPES:
+        explainer = shap.TreeExplainer(model)
+        values = explainer.shap_values(scaled_row)[0]
+        base_value = np.asarray(explainer.expected_value).reshape(-1)[0]
+    else:
+        explainer = shap.Explainer(model.predict, _background_sample(package))
+        result = explainer(scaled_row)
+        values = result.values[0]
+        base_value = np.asarray(result.base_values).reshape(-1)[0]
 
     return shap.Explanation(
-        values=shap_values[0],
+        values=values,
         base_values=base_value,
         data=display_row.iloc[0].values,
         feature_names=display_row.columns.tolist(),
