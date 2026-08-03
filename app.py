@@ -22,6 +22,13 @@ PAGES = {
     "Explainability": explainability,
     "About": about,
 }
+PAGE_NAMES = list(PAGES.keys())
+
+if "nav_page" not in st.session_state:
+    st.session_state["nav_page"] = PAGE_NAMES[0]
+
+if "requested_page" in st.session_state:
+    st.session_state["nav_page"] = st.session_state.pop("requested_page")
 
 with st.sidebar:
     st.markdown(
@@ -33,8 +40,8 @@ with st.sidebar:
         "</div>",
         unsafe_allow_html=True,
     )
-    selection = st.radio("Navigate", list(PAGES.keys()), label_visibility="collapsed")
+    st.radio("Navigate", PAGE_NAMES, key="nav_page", label_visibility="collapsed")
     st.markdown("<hr>", unsafe_allow_html=True)
     st.caption("Random Forest regression model · SHAP explainability")
 
-PAGES[selection].render()
+PAGES[st.session_state["nav_page"]].render()

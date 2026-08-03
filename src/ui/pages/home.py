@@ -43,10 +43,13 @@ def render() -> None:
     for col, (icon_name, title, desc) in zip(cols, cards):
         with col:
             st.markdown(nav_card(get_icon(icon_name, 24), title, desc), unsafe_allow_html=True)
+            if st.button("Open", key=f"nav_btn_{title}", use_container_width=True):
+                st.session_state["requested_page"] = title
+                st.rerun()
 
     st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
     st.info(
-        "Use the navigation menu in the sidebar to move between pages. "
-        "Start with **Prediction** to generate a length-of-stay estimate.",
+        "Use the navigation menu in the sidebar, or click a card above, to "
+        "move between pages.",
         icon=":material/arrow_back:",
     )
