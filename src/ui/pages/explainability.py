@@ -9,7 +9,7 @@ from src.model.global_explain import compute_global_shap
 from src.ui.components import section_title
 
 
-def render_body() -> None:
+def render_body(model_name: str | None = None) -> None:
     st.markdown("<div class='app-card'>", unsafe_allow_html=True)
     section_title("What is SHAP?")
     st.markdown(
@@ -19,7 +19,7 @@ def render_body() -> None:
     )
     st.markdown("</div>", unsafe_allow_html=True)
 
-    shap_values, display_df, _ = compute_global_shap()
+    shap_values, display_df, _ = compute_global_shap(model_name)
 
     st.markdown("<div class='app-card'>", unsafe_allow_html=True)
     section_title("SHAP Summary Plot")

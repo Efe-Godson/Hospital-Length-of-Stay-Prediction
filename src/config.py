@@ -76,7 +76,27 @@ DISPLAY_NAME_OVERRIDES = {
     "Medical Condition_Obesity": "Obesity",
 }
 
-SHAP_SAMPLE_SIZE = 100
+# Display names of binary/flag features (0 or 1 in the raw data). When listing
+# top SHAP contributors for a patient, these should only be surfaced when the
+# patient's actual value is 1/true -- SHAP assigns a value to every one-hot
+# dummy column regardless of whether it's 0 or 1 for that patient, and
+# displaying e.g. "Diabetes" as a contributor when the patient does NOT have
+# diabetes reads as though they do.
+BINARY_FEATURE_NAMES = {
+    "Male",
+    "Asthma",
+    "Cancer",
+    "Diabetes",
+    "Healthy",
+    "Hypertension",
+    "Obesity",
+    "Smoking",
+    "Alcohol",
+    "Family History",
+}
+
+SHAP_SAMPLE_SIZE = 200
+SHAP_BACKGROUND_SIZE = 100
 RANDOM_STATE = 42
 
 # Healthcare analytics colour palette.

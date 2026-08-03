@@ -37,22 +37,11 @@ def _bar_chart(df, metric: str, title: str, highlight: str, lower_is_better: boo
     return fig
 
 
-def render_body() -> None:
+def render_body(model_name: str | None = None) -> None:
     results = load_model_results()
     results_sorted = results.sort_values("RMSE").reset_index(drop=True)
     model_names = results_sorted["Model"].tolist()
-    best_name = model_names[0]
-
-    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
-    section_title("Model")
-    selected_name = st.selectbox(
-        "View metrics for",
-        model_names,
-        index=model_names.index(best_name),
-        help="Random Forest is the model deployed for prediction, but you can "
-        "view how any of the five evaluated models performed.",
-    )
-    st.markdown("</div>", unsafe_allow_html=True)
+    selected_name = model_name if model_name in model_names else model_names[0]
 
     selected = results_sorted[results_sorted["Model"] == selected_name].iloc[0]
 

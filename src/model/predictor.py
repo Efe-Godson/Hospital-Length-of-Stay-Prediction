@@ -23,7 +23,7 @@ from src.model.loader import load_model_dataset
 
 # Model classes SHAP's TreeExplainer supports directly. Anything else (e.g.
 # Linear Regression) falls back to shap.Explainer's model-agnostic path.
-_TREE_MODEL_TYPES = (
+TREE_MODEL_TYPES = (
     "RandomForestRegressor",
     "GradientBoostingRegressor",
     "DecisionTreeRegressor",
@@ -123,13 +123,13 @@ def predict(
     return prediction, scaled_row
 
 
-def _background_sample(package: dict) -> pd.DataFrame:
+def background_sample(package: dict) -> pd.DataFrame:
     """Small scaled sample used as a SHAP background/masker for non-tree models."""
     feature_names = package["feature_names"]
     scaler = package["scaler"]
     dataset = load_model_dataset()
     sample = dataset[feature_names].sample(
-        n=min(config.SHAP_SAMPLE_SIZE, len(dataset)), random_state=config.RANDOM_STATE
+        n=min(config.SHAP_BACKGROUND_SIZE, len(dataset)), random_state=config.RANDOM_STATE
     )
     scaled = scaler.transform(sample)
     return pd.DataFrame(scaled, columns=feature_names, index=sample.index)
@@ -148,12 +148,12 @@ def explain(
     model = resolve_model(package, model_name)
     display_row = scaled_row.rename(columns=config.DISPLAY_NAME_OVERRIDES)
 
-    if type(model).__name__ in _TREE_MODEL_TYPES:
+    if type(model).__name__ in TREE_MODEL_TYPES:
         explainer = shap.TreeExplainer(model)
         values = explainer.shap_values(scaled_row)[0]
         base_value = np.asarray(explainer.expected_value).reshape(-1)[0]
     else:
-        explainer = shap.Explainer(model.predict, _background_sample(package))
+        explainer = shap.Explainer(model.predict, background_sample(package))
         result = explainer(scaled_row)
         values = result.values[0]
         base_value = np.asarray(result.base_values).reshape(-1)[0]
@@ -167,9 +167,23 @@ def explain(
 
 
 def top_contributing_features(explanation: shap.Explanation, n: int = 3) -> dict:
-    """Return the top-n features increasing and decreasing the prediction."""
+    """Return the top-n features increasing and decreasing the prediction.
+
+    Binary/flag features (e.g. Diabetes, Smoking) get a SHAP value whether
+    they're 0 or 1 for this patient, since SHAP explains every column. Only
+    surface them here when they're actually true for this patient (a scaled
+    value above 0 for a StandardScaler-transformed 0/1 feature always means
+    the patient's raw value was 1), otherwise "Diabetes" would read as a
+    contributor for a patient who doesn't have diabetes.
+    """
     values = np.asarray(explanation.values)
     names = np.asarray(explanation.feature_names)
+    data = np.asarray(explanation.data)
+
+    active = np.array(
+        [name not in config.BINARY_FEATURE_NAMES or data[i] > 0 for i, name in enumerate(names)]
+    )
+    values, names = values[active], names[active]
 
     order = np.argsort(values)
 
