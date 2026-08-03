@@ -71,7 +71,7 @@ def _entry_form(package: dict) -> PatientInput | None:
     sleep_hours = c2.slider("Sleep Hours (per night)", 0.0, 12.0, 6.2, 0.1)
     st.markdown("</div>", unsafe_allow_html=True)
 
-    submitted = st.button("Predict Length of Stay", type="primary", use_container_width=True)
+    submitted = st.button("Predict Length of Stay", type="primary", width="stretch")
 
     if not submitted:
         return None
@@ -218,6 +218,6 @@ def render() -> None:
     )
     shap.plots.waterfall(state["explanation"], show=False)
     fig = plt.gcf()
-    st.pyplot(fig, use_container_width=True)
+    st.pyplot(fig, width="stretch")
     plt.close(fig)
     st.markdown("</div>", unsafe_allow_html=True)

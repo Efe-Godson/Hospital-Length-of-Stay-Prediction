@@ -31,7 +31,7 @@ def render_body() -> None:
     )
     fig, ax = plt.subplots()
     shap.summary_plot(shap_values, display_df, show=False)
-    st.pyplot(plt.gcf(), use_container_width=True)
+    st.pyplot(plt.gcf(), width="stretch")
     plt.close("all")
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -47,7 +47,7 @@ def render_body() -> None:
     fig2, ax2 = plt.subplots(figsize=(8, 8))
     ax2.barh(np.array(display_df.columns)[order], mean_abs[order], color="#0F6E63")
     ax2.set_xlabel("Mean |SHAP value|")
-    st.pyplot(fig2, use_container_width=True)
+    st.pyplot(fig2, width="stretch")
     plt.close(fig2)
     st.markdown("</div>", unsafe_allow_html=True)
 

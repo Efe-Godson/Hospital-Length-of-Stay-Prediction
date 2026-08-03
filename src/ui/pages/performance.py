@@ -70,7 +70,7 @@ def render_body() -> None:
     section_title("Model Comparison Table")
     st.dataframe(
         results_sorted,
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
     st.markdown("</div>", unsafe_allow_html=True)
@@ -81,12 +81,12 @@ def render_body() -> None:
     with c1:
         st.plotly_chart(
             _bar_chart(results, "RMSE", "RMSE by Model (lower is better)", selected_name),
-            use_container_width=True,
+            width="stretch",
         )
     with c2:
         st.plotly_chart(
             _bar_chart(results, "MAE", "MAE by Model (lower is better)", selected_name),
-            use_container_width=True,
+            width="stretch",
         )
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -94,7 +94,7 @@ def render_body() -> None:
     section_title("Training Time Comparison")
     st.plotly_chart(
         _bar_chart(results, "Training Time (s)", "Training Time by Model (seconds)", selected_name),
-        use_container_width=True,
+        width="stretch",
     )
     st.markdown("</div>", unsafe_allow_html=True)
 

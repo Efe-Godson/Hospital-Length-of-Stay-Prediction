@@ -41,7 +41,7 @@ def render() -> None:
     for col, (icon_name, title, desc) in zip(cols, cards):
         with col:
             st.markdown(nav_card(get_icon(icon_name, 24), title, desc), unsafe_allow_html=True)
-            if st.button("Open", key=f"nav_btn_{title}", use_container_width=True):
+            if st.button("Open", key=f"nav_btn_{title}", width="stretch"):
                 st.session_state["requested_page"] = title
                 st.rerun()
 
