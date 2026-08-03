@@ -29,7 +29,7 @@ def render() -> None:
             <p style='color: var(--clr-text-muted); font-size: 0.98rem; line-height: 1.6;'>
                 Reliable length-of-stay estimates support bed and staffing
                 planning, discharge coordination and early identification of
-                patients who may require extended care &mdash; helping hospitals
+                patients who may require extended care, helping hospitals
                 allocate resources more effectively.
             </p>
         </div>

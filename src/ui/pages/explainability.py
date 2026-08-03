@@ -56,7 +56,7 @@ def render() -> None:
     section_title("SHAP Feature Importance")
     st.caption(
         "Ranks features by their average absolute impact on predictions across "
-        "all sampled patients — the higher the bar, the more that feature "
+        "all sampled patients: the higher the bar, the more that feature "
         "influences the model overall, regardless of direction."
     )
     mean_abs = np.abs(shap_values).mean(axis=0)

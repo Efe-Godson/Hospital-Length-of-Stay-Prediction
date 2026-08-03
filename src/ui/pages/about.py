@@ -28,22 +28,22 @@ def render() -> None:
     section_title("Machine Learning Workflow")
     st.markdown(
         """
-        1. **Data understanding** — exploratory analysis of 30,000 patient
+        1. **Data understanding:** exploratory analysis of 30,000 patient
            records and 20 variables, including missing-value and correlation
            analysis.
-        2. **Data preparation** — removal of non-informative columns, median
+        2. **Data preparation:** removal of non-informative columns, median
            imputation for missing numerical values, mode imputation for
            missing categorical values, one-hot encoding of categorical
            variables, an 80/20 train-test split and feature standardisation
            with `StandardScaler`.
-        3. **Model development** — five regression models were trained and
+        3. **Model development:** five regression models were trained and
            evaluated on the same test set: Linear Regression, Decision Tree,
            Random Forest, Gradient Boosting and XGBoost.
-        4. **Model selection** — Random Forest was selected based on the
+        4. **Model selection:** Random Forest was selected based on the
            lowest RMSE and highest R² among the candidates.
-        5. **Explainability** — SHAP (TreeExplainer) was used to generate
+        5. **Explainability:** SHAP (TreeExplainer) was used to generate
            global and local explanations of the selected model's predictions.
-        6. **Deployment** — the fitted model, scaler and feature metadata
+        6. **Deployment:** the fitted model, scaler and feature metadata
            were packaged for use in this Streamlit application, without any
            retraining or changes to preprocessing.
         """
@@ -54,13 +54,13 @@ def render() -> None:
     section_title("Technologies Used")
     st.markdown(
         """
-        - **Python** — core language for analysis and application development
-        - **pandas / NumPy** — data manipulation
-        - **scikit-learn** — preprocessing, model training and evaluation
-        - **XGBoost** — gradient boosting model comparison
-        - **SHAP** — model explainability
-        - **Streamlit** — interactive web application
-        - **Plotly / Matplotlib** — data visualisation
+        - **Python:** core language for analysis and application development
+        - **pandas / NumPy:** data manipulation
+        - **scikit-learn:** preprocessing, model training and evaluation
+        - **XGBoost:** gradient boosting model comparison
+        - **SHAP:** model explainability
+        - **Streamlit:** interactive web application
+        - **Plotly / Matplotlib:** data visualisation
         """
     )
     st.markdown("</div>", unsafe_allow_html=True)
