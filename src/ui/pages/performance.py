@@ -87,19 +87,8 @@ def render() -> None:
     st.markdown("<div class='app-card'>", unsafe_allow_html=True)
     section_title("Why Random Forest Was Selected")
     st.markdown(
-        """
-        Five regression models were trained and evaluated on the same held-out
-        test set: **Linear Regression**, **Decision Tree**, **Random Forest**,
-        **Gradient Boosting** and **XGBoost**.
-
-        **Random Forest** achieved the lowest RMSE and one of the lowest MAE
-        values among all candidates, alongside the highest R² score,
-        indicating both the smallest average prediction error and the
-        strongest ability to explain variation in hospital length of stay.
-        Although it required the longest training time, this was a one-time
-        cost during development and does not affect prediction speed at
-        inference. Its measurable improvement in predictive accuracy over the
-        other models justified its selection as the final deployed model.
-        """
+        "**Random Forest** achieved the lowest RMSE and the highest R² of the "
+        "five models compared, so it was selected as the deployed model. See "
+        "the **About** page for the full model development workflow."
     )
     st.markdown("</div>", unsafe_allow_html=True)

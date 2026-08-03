@@ -14,12 +14,16 @@ def render() -> None:
     section_title("Project Overview")
     st.markdown(
         """
-        This application predicts hospital length of stay using a machine
-        learning model trained on a healthcare risk-factors dataset combining
+        This application predicts hospital length of stay using a Random
+        Forest model trained on a healthcare risk-factors dataset combining
         demographic, clinical and lifestyle information for 30,000 patients.
         It was developed as part of an MSc dissertation project exploring how
         predictive modelling and explainable AI can support clinical
         decision-making around hospital resource planning.
+
+        Reliable length-of-stay estimates support bed and staffing planning,
+        discharge coordination and early identification of patients who may
+        require extended care.
         """
     )
     st.markdown("</div>", unsafe_allow_html=True)
@@ -46,6 +50,44 @@ def render() -> None:
         6. **Deployment:** the fitted model, scaler and feature metadata
            were packaged for use in this Streamlit application, without any
            retraining or changes to preprocessing.
+        """
+    )
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
+    section_title("Why Random Forest Was Selected")
+    st.markdown(
+        """
+        Five regression models were trained and evaluated on the same
+        held-out test set: Linear Regression, Decision Tree, Random Forest,
+        Gradient Boosting and XGBoost. **Random Forest** achieved the lowest
+        RMSE and one of the lowest MAE values, alongside the highest R²
+        score, indicating both the smallest average prediction error and the
+        strongest ability to explain variation in hospital length of stay.
+        Although it required the longest training time, this was a one-time
+        cost during development and does not affect prediction speed at
+        inference.
+        """
+    )
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
+    section_title("Understanding SHAP Explanations")
+    st.markdown(
+        """
+        SHAP (SHapley Additive exPlanations) explains a machine learning
+        model's output by calculating how much each input feature pushed a
+        given prediction higher or lower compared to the model's average
+        prediction. Adding up all of a patient's feature contributions,
+        starting from that average, reconstructs the model's final predicted
+        length of stay.
+
+        On the **Explainability** page, medical condition, Glucose, Stress
+        Level, HbA1c, Blood Pressure and Sleep Hours are the strongest
+        overall contributors, while Smoking, Alcohol and Gender have
+        comparatively small effects. These plots describe the model's
+        learned behaviour on this dataset and should support, not replace,
+        clinical judgement.
         """
     )
     st.markdown("</div>", unsafe_allow_html=True)

@@ -19,18 +19,10 @@ def render() -> None:
             <span class='pill'>Machine Learning · Clinical Decision Support</span>
             <h3 style='margin-top: 0.9rem;'>Predict hospital length of stay from patient data</h3>
             <p style='color: var(--clr-text-muted); font-size: 0.98rem; line-height: 1.6;'>
-                This application estimates how many days a patient is likely to remain
-                hospitalised, based on demographic information, clinical measurements
-                and lifestyle factors recorded at admission. It uses a Random Forest
-                regression model, trained and validated on 30,000 patient records,
-                selected after comparing five candidate algorithms on prediction
-                accuracy and error.
-            </p>
-            <p style='color: var(--clr-text-muted); font-size: 0.98rem; line-height: 1.6;'>
-                Reliable length-of-stay estimates support bed and staffing
-                planning, discharge coordination and early identification of
-                patients who may require extended care, helping hospitals
-                allocate resources more effectively.
+                Enter a patient's demographic, clinical and lifestyle information
+                to estimate how many days they are likely to remain hospitalised.
+                See the <strong>About</strong> page for details on the underlying
+                model and dataset.
             </p>
         </div>
         """,

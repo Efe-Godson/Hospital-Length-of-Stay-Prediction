@@ -20,19 +20,9 @@ def render() -> None:
     st.markdown("<div class='app-card'>", unsafe_allow_html=True)
     section_title("What is SHAP?")
     st.markdown(
-        """
-        SHAP (SHapley Additive exPlanations) is a method for explaining the
-        output of a machine learning model. For every prediction, SHAP
-        calculates how much each input feature pushed the prediction higher
-        or lower compared to the model's average prediction. Adding up all
-        of a patient's feature contributions, starting from that average,
-        reconstructs the model's final predicted length of stay.
-
-        This makes it possible to see **which patient characteristics matter
-        most overall**, and **why the model made a specific prediction for an
-        individual patient** (see the Prediction page for a patient-level
-        example).
-        """
+        "SHAP shows how much each patient characteristic pushed a prediction "
+        "above or below the model's average. See the **About** page for more "
+        "detail on how it works."
     )
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -71,18 +61,8 @@ def render() -> None:
     st.markdown("<div class='app-card'>", unsafe_allow_html=True)
     section_title("How to Interpret These Plots")
     st.markdown(
-        """
-        - **Medical condition** (Cancer, Diabetes, Hypertension, Healthy) tends
-          to have the largest influence on predicted length of stay, reflecting
-          the importance of the underlying diagnosis.
-        - **Glucose**, **Stress Level**, **HbA1c**, **Blood Pressure** and
-          **Sleep Hours** are the strongest continuous clinical and lifestyle
-          contributors.
-        - Features near the bottom of the importance chart, such as
-          **Smoking**, **Alcohol** and **Gender**, have comparatively small
-          effects on individual predictions.
-        - These plots describe the model's learned behaviour on this dataset;
-          they should support, not replace, clinical judgement.
-        """
+        "Medical condition, Glucose, Stress Level and HbA1c drive most "
+        "predictions. These plots describe the model's learned behaviour and "
+        "should support, not replace, clinical judgement."
     )
     st.markdown("</div>", unsafe_allow_html=True)
