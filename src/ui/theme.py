@@ -124,8 +124,7 @@ _CSS = f"""
         border: 1px solid var(--clr-border);
         border-radius: 16px;
         padding: 1.4rem 1.5rem;
-        height: 100%;
-        min-height: 190px;
+        height: 210px;
         display: flex;
         flex-direction: column;
         transition: box-shadow 0.15s ease, transform 0.15s ease;
