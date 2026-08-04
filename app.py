@@ -40,7 +40,5 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     st.radio("Navigate", PAGE_NAMES, key="nav_page", label_visibility="collapsed")
-    st.markdown("<hr>", unsafe_allow_html=True)
-    st.caption("Random Forest regression model · SHAP explainability")
 
 PAGES[st.session_state["nav_page"]].render()

@@ -18,12 +18,6 @@ def render() -> None:
             """
             <span class='pill'>Machine Learning · Clinical Decision Support</span>
             <h3 style='margin-top: 0.9rem;'>Predict hospital length of stay from patient data</h3>
-            <p style='color: var(--clr-text-muted); font-size: 0.98rem; line-height: 1.6;'>
-                Enter a patient's demographic, clinical and lifestyle information
-                to estimate how many days they are likely to remain hospitalised.
-                See the <strong>About</strong> page for details on the underlying
-                model and dataset.
-            </p>
             """,
             unsafe_allow_html=True,
         )
