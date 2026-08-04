@@ -6,9 +6,9 @@ import streamlit as st
 
 from src.model.loader import load_deployment_package
 from src.model.predictor import PatientInput, explain, predict, top_contributing_features
-from src.ui.components import page_header, render_metric_row, section_title
+from src.ui.components import card, page_header, render_metric_row, section_title
 from src.ui.icons import icon as get_icon
-from src.utils.formatting import format_days, format_signed, yes_no
+from src.utils.formatting import format_days, format_signed
 
 
 def _model_selector(package: dict) -> str:
@@ -17,59 +17,55 @@ def _model_selector(package: dict) -> str:
         return package.get("default_model_name", "Random Forest")
 
     default_name = package.get("default_model_name", model_names[0])
-    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
-    section_title("Model")
-    selected = st.selectbox(
-        "Prediction model",
-        model_names,
-        index=model_names.index(default_name),
-        help="Random Forest is the model recommended in this project's evaluation, "
-        "but any of the five compared models can be used to generate a prediction.",
-    )
-    st.markdown("</div>", unsafe_allow_html=True)
+    with card():
+        section_title("Model")
+        selected = st.selectbox(
+            "Prediction model",
+            model_names,
+            index=model_names.index(default_name),
+            help="Random Forest is the model recommended in this project's evaluation, "
+            "but any of the five compared models can be used to generate a prediction.",
+        )
     return selected
 
 
 def _entry_form(package: dict) -> PatientInput | None:
-    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
-    section_title("Demographics")
-    c1, c2, c3 = st.columns(3)
-    age = c1.number_input("Age (years)", min_value=0, max_value=120, value=55, step=1)
-    gender = c2.selectbox("Gender", package["gender_options"])
-    medical_condition = c3.selectbox("Medical Condition", package["medical_conditions"])
-    st.markdown("</div>", unsafe_allow_html=True)
+    with card():
+        section_title("Demographics")
+        c1, c2, c3 = st.columns(3)
+        age = c1.number_input("Age (years)", min_value=0, max_value=120, value=55, step=1)
+        gender = c2.selectbox("Gender", package["gender_options"])
+        medical_condition = c3.selectbox("Medical Condition", package["medical_conditions"])
 
-    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
-    section_title("Clinical Measurements")
-    c1, c2, c3 = st.columns(3)
-    glucose = c1.number_input("Glucose (mg/dL)", min_value=0.0, max_value=500.0, value=110.0, step=1.0)
-    blood_pressure = c2.number_input("Blood Pressure (mmHg)", min_value=0.0, max_value=300.0, value=138.0, step=1.0)
-    bmi = c3.number_input("BMI", min_value=5.0, max_value=80.0, value=28.0, step=0.1)
+    with card():
+        section_title("Clinical Measurements")
+        c1, c2, c3 = st.columns(3)
+        glucose = c1.number_input("Glucose (mg/dL)", min_value=0.0, max_value=500.0, value=110.0, step=1.0)
+        blood_pressure = c2.number_input("Blood Pressure (mmHg)", min_value=0.0, max_value=300.0, value=138.0, step=1.0)
+        bmi = c3.number_input("BMI", min_value=5.0, max_value=80.0, value=28.0, step=0.1)
 
-    c1, c2, c3 = st.columns(3)
-    oxygen_saturation = c1.number_input("Oxygen Saturation (%)", min_value=0.0, max_value=100.0, value=95.0, step=0.1)
-    cholesterol = c2.number_input("Cholesterol (mg/dL)", min_value=0.0, max_value=600.0, value=212.0, step=1.0)
-    triglycerides = c3.number_input("Triglycerides (mg/dL)", min_value=0.0, max_value=800.0, value=175.0, step=1.0)
+        c1, c2, c3 = st.columns(3)
+        oxygen_saturation = c1.number_input("Oxygen Saturation (%)", min_value=0.0, max_value=100.0, value=95.0, step=0.1)
+        cholesterol = c2.number_input("Cholesterol (mg/dL)", min_value=0.0, max_value=600.0, value=212.0, step=1.0)
+        triglycerides = c3.number_input("Triglycerides (mg/dL)", min_value=0.0, max_value=800.0, value=175.0, step=1.0)
 
-    c1, _, _ = st.columns(3)
-    hba1c = c1.number_input("HbA1c (%)", min_value=0.0, max_value=20.0, value=6.0, step=0.1)
-    st.markdown("</div>", unsafe_allow_html=True)
+        c1, _, _ = st.columns(3)
+        hba1c = c1.number_input("HbA1c (%)", min_value=0.0, max_value=20.0, value=6.0, step=0.1)
 
-    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
-    section_title("Lifestyle Factors")
-    c1, c2, c3 = st.columns(3)
-    smoking = c1.toggle("Smoker", value=False)
-    alcohol = c2.toggle("Alcohol Use", value=False)
-    family_history = c3.toggle("Family History of Illness", value=False)
+    with card():
+        section_title("Lifestyle Factors")
+        c1, c2, c3 = st.columns(3)
+        smoking = c1.toggle("Smoker", value=False)
+        alcohol = c2.toggle("Alcohol Use", value=False)
+        family_history = c3.toggle("Family History of Illness", value=False)
 
-    c1, c2 = st.columns(2)
-    physical_activity = c1.slider("Physical Activity (hrs/week)", -5.0, 15.0, 3.8, 0.1)
-    diet_score = c2.slider("Diet Score (0-12)", -3.0, 13.0, 4.0, 0.1)
+        c1, c2 = st.columns(2)
+        physical_activity = c1.slider("Physical Activity (hrs/week)", -5.0, 15.0, 3.8, 0.1)
+        diet_score = c2.slider("Diet Score (0-12)", -3.0, 13.0, 4.0, 0.1)
 
-    c1, c2 = st.columns(2)
-    stress_level = c1.slider("Stress Level (0-16)", -3.0, 16.0, 5.9, 0.1)
-    sleep_hours = c2.slider("Sleep Hours (per night)", 0.0, 12.0, 6.2, 0.1)
-    st.markdown("</div>", unsafe_allow_html=True)
+        c1, c2 = st.columns(2)
+        stress_level = c1.slider("Stress Level (0-16)", -3.0, 16.0, 5.9, 0.1)
+        sleep_hours = c2.slider("Sleep Hours (per night)", 0.0, 12.0, 6.2, 0.1)
 
     submitted = st.button("Predict Length of Stay", type="primary", width="stretch")
 
@@ -95,41 +91,6 @@ def _entry_form(package: dict) -> PatientInput | None:
         stress_level=stress_level,
         sleep_hours=sleep_hours,
     )
-
-
-def _render_summary(patient: PatientInput) -> None:
-    section_title("Patient Summary")
-    rows = [
-        ("Age", f"{patient.age:.0f} years"),
-        ("Gender", patient.gender),
-        ("Medical Condition", patient.medical_condition),
-        ("Glucose", f"{patient.glucose:.1f} mg/dL"),
-        ("Blood Pressure", f"{patient.blood_pressure:.1f} mmHg"),
-        ("BMI", f"{patient.bmi:.1f}"),
-        ("Oxygen Saturation", f"{patient.oxygen_saturation:.1f}%"),
-        ("Cholesterol", f"{patient.cholesterol:.1f} mg/dL"),
-        ("Triglycerides", f"{patient.triglycerides:.1f} mg/dL"),
-        ("HbA1c", f"{patient.hba1c:.1f}%"),
-        ("Smoking", yes_no(patient.smoking)),
-        ("Alcohol Use", yes_no(patient.alcohol)),
-        ("Family History", yes_no(patient.family_history)),
-        ("Physical Activity", f"{patient.physical_activity:.1f} hrs/week"),
-        ("Diet Score", f"{patient.diet_score:.1f}"),
-        ("Stress Level", f"{patient.stress_level:.1f}"),
-        ("Sleep Hours", f"{patient.sleep_hours:.1f} hrs"),
-    ]
-    left, right = st.columns(2)
-    half = (len(rows) + 1) // 2
-    for col, chunk in zip((left, right), (rows[:half], rows[half:])):
-        with col:
-            for label, value in chunk:
-                st.markdown(
-                    f"<div style='display:flex; justify-content:space-between; "
-                    f"padding: 0.35rem 0; border-bottom: 1px solid rgba(15, 110, 99, 0.3); font-size:0.9rem;'>"
-                    f"<span style='color:var(--clr-text-muted);'>{label}</span>"
-                    f"<span style='font-weight:600;'>{value}</span></div>",
-                    unsafe_allow_html=True,
-                )
 
 
 def _plain_english_explanation(contributors: dict, prediction: float, baseline: float) -> str:
@@ -163,7 +124,6 @@ def render() -> None:
         prediction, scaled_row = predict(patient, package, model_name)
         explanation = explain(scaled_row, package, model_name)
         st.session_state["last_prediction"] = {
-            "patient": patient,
             "prediction": prediction,
             "explanation": explanation,
             "model_name": model_name,
@@ -173,7 +133,6 @@ def render() -> None:
     if not state:
         return
 
-    st.markdown("<div style='height: 0.5rem;'></div>", unsafe_allow_html=True)
     st.markdown(
         f"### Prediction Result "
         f"<span class='pill' style='vertical-align:middle; margin-left:0.5rem;'>"
@@ -193,31 +152,18 @@ def render() -> None:
         ]
     )
 
-    st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
-    col_left, col_right = st.columns([1, 1])
-
-    with col_left:
-        st.markdown("<div class='app-card'>", unsafe_allow_html=True)
-        _render_summary(state["patient"])
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with col_right:
-        st.markdown("<div class='app-card'>", unsafe_allow_html=True)
+    with card():
         section_title("Why this prediction?")
         contributors = top_contributing_features(state["explanation"])
-        st.markdown(
-            _plain_english_explanation(contributors, state["prediction"], baseline)
-        )
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown(_plain_english_explanation(contributors, state["prediction"], baseline))
 
-    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
-    section_title("Local SHAP Explanation")
-    st.caption(
-        "This waterfall plot shows how each patient characteristic pushed the "
-        "prediction above or below the model's average output."
-    )
-    shap.plots.waterfall(state["explanation"], show=False)
-    fig = plt.gcf()
-    st.pyplot(fig, width="stretch")
-    plt.close(fig)
-    st.markdown("</div>", unsafe_allow_html=True)
+    with card():
+        section_title("Local SHAP Explanation")
+        st.caption(
+            "This waterfall plot shows how each patient characteristic pushed the "
+            "prediction above or below the model's average output."
+        )
+        shap.plots.waterfall(state["explanation"], show=False)
+        fig = plt.gcf()
+        st.pyplot(fig, width="stretch")
+        plt.close(fig)

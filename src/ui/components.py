@@ -1,6 +1,11 @@
 """Reusable UI building blocks shared across pages."""
 
+import itertools
+from contextlib import contextmanager
+
 import streamlit as st
+
+_card_counter = itertools.count()
 
 
 def page_header(title: str, subtitle: str = "", icon: str = "") -> None:
@@ -58,12 +63,21 @@ def nav_card(icon: str, title: str, description: str) -> str:
     )
 
 
-def start_card() -> None:
-    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
+@contextmanager
+def card():
+    """A bordered card container. Use as `with card(): ...` instead of manually
+    opening/closing a <div> across separate st.markdown calls -- Streamlit parses
+    each markdown call as its own isolated HTML fragment, so an unclosed <div>
+    opened in one call and closed in another never actually wraps the widgets
+    rendered in between; it just leaves a stray empty, styled div behind.
 
-
-def end_card() -> None:
-    st.markdown("</div>", unsafe_allow_html=True)
+    Each card gets a unique key ("card_N") so Streamlit doesn't raise a
+    duplicate-element error; every such key becomes a CSS class "st-key-card_N",
+    which theme.py styles via a "st-key-card" prefix match.
+    """
+    key = f"card_{next(_card_counter)}"
+    with st.container(border=True, key=key):
+        yield
 
 
 def pill(text: str) -> str:

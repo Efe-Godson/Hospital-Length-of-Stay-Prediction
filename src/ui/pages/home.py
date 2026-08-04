@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from src.ui.components import nav_card, page_header
+from src.ui.components import card, nav_card, page_header
 from src.ui.icons import icon as get_icon
 
 
@@ -13,9 +13,9 @@ def render() -> None:
         icon=get_icon("hospital", 26),
     )
 
-    st.markdown(
-        """
-        <div class='app-card'>
+    with card():
+        st.markdown(
+            """
             <span class='pill'>Machine Learning · Clinical Decision Support</span>
             <h3 style='margin-top: 0.9rem;'>Predict hospital length of stay from patient data</h3>
             <p style='color: var(--clr-text-muted); font-size: 0.98rem; line-height: 1.6;'>
@@ -24,12 +24,10 @@ def render() -> None:
                 See the <strong>About</strong> page for details on the underlying
                 model and dataset.
             </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+            """,
+            unsafe_allow_html=True,
+        )
 
-    st.markdown("<div style='height: 0.5rem;'></div>", unsafe_allow_html=True)
     st.markdown("#### Explore the application")
 
     cards = [

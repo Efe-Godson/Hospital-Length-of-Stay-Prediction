@@ -76,17 +76,20 @@ _CSS = f"""
         transform: translateY(0);
     }}
 
-    /* Generic card */
-    .app-card {{
-        background: rgba(15, 110, 99, 0.06);
-        border: 1px solid var(--clr-border);
-        border-radius: 16px;
-        padding: 1.5rem 1.75rem;
+    /* Generic card: Streamlit's native bordered container, restyled.
+       Used via the `card()` context manager in src/ui/components.py, which
+       gives each container a key "card_N" -> CSS class "st-key-card_N". */
+    div[class*="st-key-card_"] {{
+        background: rgba(15, 110, 99, 0.06) !important;
+        border: 1px solid var(--clr-border) !important;
+        border-radius: 16px !important;
         box-shadow: 0 1px 3px rgba(15, 110, 99, 0.06);
         margin-bottom: 1.25rem;
+        padding: 1.5rem 1.75rem;
     }}
 
-    .app-card h3, .app-card h4 {{
+    div[class*="st-key-card_"] h3,
+    div[class*="st-key-card_"] h4 {{
         margin-top: 0;
     }}
 

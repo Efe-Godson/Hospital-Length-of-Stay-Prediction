@@ -5,7 +5,7 @@ import streamlit as st
 
 from src import config
 from src.model.loader import load_model_results
-from src.ui.components import render_metric_row, section_title
+from src.ui.components import card, render_metric_row, section_title
 
 
 def _bar_chart(df, metric: str, title: str, highlight: str, lower_is_better: bool = True) -> go.Figure:
@@ -54,44 +54,33 @@ def render_body(model_name: str | None = None) -> None:
         ]
     )
 
-    st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
-    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
-    section_title("Model Comparison Table")
-    st.dataframe(
-        results_sorted,
-        width="stretch",
-        hide_index=True,
-    )
-    st.markdown("</div>", unsafe_allow_html=True)
+    with card():
+        section_title("Model Comparison Table")
+        st.dataframe(
+            results_sorted,
+            width="stretch",
+            hide_index=True,
+        )
 
-    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
-    section_title("Prediction Error Comparison")
-    c1, c2 = st.columns(2)
-    with c1:
+    with card():
+        section_title("Prediction Error Comparison")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.plotly_chart(
+                _bar_chart(results, "RMSE", "RMSE by Model (lower is better)", selected_name),
+                width="stretch",
+            )
+        with c2:
+            st.plotly_chart(
+                _bar_chart(results, "MAE", "MAE by Model (lower is better)", selected_name),
+                width="stretch",
+            )
+
+    with card():
+        section_title("Training Time Comparison")
         st.plotly_chart(
-            _bar_chart(results, "RMSE", "RMSE by Model (lower is better)", selected_name),
+            _bar_chart(results, "Training Time (s)", "Training Time by Model (seconds)", selected_name),
             width="stretch",
         )
-    with c2:
-        st.plotly_chart(
-            _bar_chart(results, "MAE", "MAE by Model (lower is better)", selected_name),
-            width="stretch",
-        )
-    st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
-    section_title("Training Time Comparison")
-    st.plotly_chart(
-        _bar_chart(results, "Training Time (s)", "Training Time by Model (seconds)", selected_name),
-        width="stretch",
-    )
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown("<div class='app-card'>", unsafe_allow_html=True)
-    section_title("Why Random Forest Was Selected")
-    st.markdown(
-        "**Random Forest** achieved the lowest RMSE and the highest R² of the "
-        "five models compared, so it was selected as the deployed model. See "
-        "the **About** page for the full model development workflow."
-    )
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.caption("See the **About** page for why Random Forest was selected as the deployed model.")
