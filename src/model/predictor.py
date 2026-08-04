@@ -166,14 +166,14 @@ def explain(
     )
 
 
-def top_contributing_features(explanation: shap.Explanation, n: int = 3) -> dict:
-    """Return the top-n features increasing and decreasing the prediction.
+def _active_values_and_names(explanation: shap.Explanation) -> tuple[np.ndarray, np.ndarray]:
+    """SHAP values/names filtered to exclude inactive binary/flag features.
 
     Binary/flag features (e.g. Diabetes, Smoking) get a SHAP value whether
     they're 0 or 1 for this patient, since SHAP explains every column. Only
-    surface them here when they're actually true for this patient (a scaled
-    value above 0 for a StandardScaler-transformed 0/1 feature always means
-    the patient's raw value was 1), otherwise "Diabetes" would read as a
+    surface them when they're actually true for this patient (a scaled value
+    above 0 for a StandardScaler-transformed 0/1 feature always means the
+    patient's raw value was 1), otherwise "Diabetes" would read as a
     contributor for a patient who doesn't have diabetes.
     """
     values = np.asarray(explanation.values)
@@ -183,11 +183,22 @@ def top_contributing_features(explanation: shap.Explanation, n: int = 3) -> dict
     active = np.array(
         [name not in config.BINARY_FEATURE_NAMES or data[i] > 0 for i, name in enumerate(names)]
     )
-    values, names = values[active], names[active]
+    return values[active], names[active]
 
+
+def top_contributing_features(explanation: shap.Explanation, n: int = 3) -> dict:
+    """Return the top-n features increasing and decreasing the prediction."""
+    values, names = _active_values_and_names(explanation)
     order = np.argsort(values)
 
     decreasing = [(names[i], values[i]) for i in order[:n] if values[i] < 0]
     increasing = [(names[i], values[i]) for i in order[::-1][:n] if values[i] > 0]
 
     return {"increasing": increasing, "decreasing": decreasing}
+
+
+def all_contributing_features(explanation: shap.Explanation, n: int = 8) -> list[tuple[str, float]]:
+    """Return the top-n features by absolute impact, in either direction."""
+    values, names = _active_values_and_names(explanation)
+    order = np.argsort(-np.abs(values))[:n]
+    return [(names[i], values[i]) for i in order]

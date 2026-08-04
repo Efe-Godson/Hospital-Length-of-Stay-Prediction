@@ -1,17 +1,34 @@
-"""Prediction page: patient data entry, prediction and local SHAP explanation."""
+"""Prediction page: patient data entry, and a popup with the prediction result."""
 
-import matplotlib.pyplot as plt
-import shap
+import plotly.graph_objects as go
 import streamlit as st
 
 from src import config
 from src.model.loader import load_deployment_package
-from src.model.predictor import PatientInput, explain, predict, top_contributing_features
-from src.ui.components import card, page_header, render_metric_row, section_title
+from src.model.predictor import (
+    PatientInput,
+    all_contributing_features,
+    explain,
+    predict,
+    top_contributing_features,
+)
+from src.ui.components import card, page_header, section_title
 from src.ui.icons import icon as get_icon
 from src.utils.formatting import format_days, format_signed_days
 
 _SELECT_PLACEHOLDER = "— Select —"
+
+# Maps a clinical-measurement feature name to the PatientInput attribute
+# holding its raw (unscaled) value, for the Clinical Observations panel.
+_FEATURE_TO_PATIENT_ATTR = {
+    "Glucose": "glucose",
+    "Blood Pressure": "blood_pressure",
+    "BMI": "bmi",
+    "Oxygen Saturation": "oxygen_saturation",
+    "Cholesterol": "cholesterol",
+    "Triglycerides": "triglycerides",
+    "HbA1c": "hba1c",
+}
 
 
 def _entry_form(package: dict) -> tuple[str, PatientInput | None]:
@@ -56,7 +73,7 @@ def _entry_form(package: dict) -> tuple[str, PatientInput | None]:
 
     model_names = list(package.get("models", {}).keys()) or [package.get("default_model_name", "Random Forest")]
     default_name = package.get("default_model_name", model_names[0])
-    c1, c2 = st.columns([2, 1])
+    c1, c2 = st.columns(2)
     with c1:
         model_name = st.selectbox(
             "Model",
@@ -101,6 +118,15 @@ def _describe(name: str) -> str:
     return config.FEATURE_PHRASES.get(name, name)
 
 
+def _bare(name: str) -> str:
+    """Strip a leading possessive/verb from a feature phrase, for use mid-list."""
+    phrase = _describe(name)
+    for prefix in ("not having ", "having ", "their ", "a ", "being "):
+        if phrase.startswith(prefix):
+            return phrase[len(prefix):]
+    return phrase
+
+
 def _join_naturally(phrases: list[str]) -> str:
     if len(phrases) == 1:
         return phrases[0]
@@ -109,29 +135,137 @@ def _join_naturally(phrases: list[str]) -> str:
     return ", ".join(phrases[:-1]) + f" and {phrases[-1]}"
 
 
-def _plain_english_explanation(contributors: dict, prediction: float, baseline: float) -> str:
-    rounded_prediction, rounded_baseline = round(prediction), round(baseline)
+def _narrative_summary(contributors: dict, prediction: float) -> str:
+    """A short flowing paragraph in the style of a clinical report summary."""
+    increasing = [name for name, _ in contributors["increasing"]]
+    decreasing = [name for name, _ in contributors["decreasing"]]
+    days = format_days(prediction)
 
-    if rounded_prediction == rounded_baseline:
-        lines = [
-            f"The model predicts a stay of **{format_days(prediction)}**, about the same "
-            f"as its average prediction of {format_days(baseline)}."
-        ]
-    else:
-        direction = "longer" if prediction > baseline else "shorter"
-        lines = [
-            f"The model predicts a stay of **{format_days(prediction)}**, which is "
-            f"{direction} than its average prediction of {format_days(baseline)}."
-        ]
+    if not increasing and not decreasing:
+        return f"The model predicts an estimated hospital stay of **{days}**, close to its typical prediction."
 
-    if contributors["increasing"]:
-        phrases = _join_naturally([_describe(name) for name, _ in contributors["increasing"]])
-        lines.append(f"This was pushed **up** mainly by {phrases}.")
-    if contributors["decreasing"]:
-        phrases = _join_naturally([_describe(name) for name, _ in contributors["decreasing"]])
-        lines.append(f"This was pulled **down** mainly by {phrases}.")
+    clauses = []
+    if increasing:
+        lead = _describe(increasing[0])
+        clauses.append(f"{lead[0].upper()}{lead[1:]} increased the expected hospital stay")
+    if decreasing:
+        bare = _join_naturally([_bare(name) for name in decreasing])
+        verb = "was" if len(decreasing) == 1 else "were"
+        clause = f"{bare} {verb} associated with a shorter recovery period"
+        clauses.append(clause if not clauses else f"while {clause}")
 
-    return "  \n".join(lines)
+    body = clauses[0] if len(clauses) == 1 else f"{clauses[0]}, {clauses[1]}"
+    return f"{body}, resulting in an estimated hospital stay of **{days}**."
+
+
+def _clinical_observations(explanation, patient: PatientInput) -> list[dict]:
+    """Reference-range status for the clinical measurements that most influenced this prediction."""
+    values, names = explanation.values, explanation.feature_names
+    ranked = sorted(
+        (
+            (name, abs(value))
+            for name, value in zip(names, values)
+            if name in config.CLINICAL_REFERENCE_RANGES
+        ),
+        key=lambda item: item[1],
+        reverse=True,
+    )
+
+    observations = []
+    for name, _ in ranked[:4]:
+        attr = _FEATURE_TO_PATIENT_ATTR[name]
+        value = getattr(patient, attr)
+        range_info = config.CLINICAL_REFERENCE_RANGES[name]
+
+        if value < range_info["low"]:
+            status, normal = "Low", False
+        elif value > range_info["high"]:
+            status, normal = "Elevated", False
+        else:
+            status, normal = "Normal", True
+
+        unit = f" {range_info['unit']}" if range_info["unit"] else ""
+        observations.append(
+            {
+                "label": range_info["label"],
+                "status": status,
+                "value_str": f"{value:g}{unit}",
+                "normal": normal,
+            }
+        )
+    return observations
+
+
+def _contribution_chart(items: list[tuple[str, float]]) -> go.Figure:
+    items = sorted(items, key=lambda item: item[1])
+    names = [config.FEATURE_PHRASES.get(name, name).capitalize() for name, _ in items]
+    values = [value for _, value in items]
+    colors = [config.COLORS["danger"] if v > 0 else config.COLORS["accent"] for v in values]
+
+    fig = go.Figure(
+        go.Bar(x=values, y=names, orientation="h", marker_color=colors)
+    )
+    fig.update_layout(
+        xaxis_title="Impact on predicted length of stay (days)",
+        yaxis_title="",
+        height=340,
+        margin=dict(l=10, r=10, t=10, b=10),
+        plot_bgcolor="white",
+        paper_bgcolor="white",
+        font=dict(family="Inter, sans-serif", color=config.COLORS["text"]),
+    )
+    return fig
+
+
+@st.dialog("Prediction Result", width="large")
+def _show_result_dialog(state: dict) -> None:
+    prediction = state["prediction"]
+    explanation = state["explanation"]
+    patient = state["patient"]
+    baseline = float(explanation.base_values)
+
+    st.markdown(
+        f"<div style='text-align:center; margin: 0 0 1.25rem;'>"
+        f"<span class='pill'>{state.get('model_name', 'Random Forest')}</span>"
+        f"<div style='font-size:0.85rem; color:var(--clr-text-muted); text-transform:uppercase; "
+        f"letter-spacing:0.05em; margin-top:0.75rem;'>Predicted Length of Stay</div>"
+        f"<div style='font-size:3.4rem; font-weight:800; color:var(--clr-primary); line-height:1.15;'>"
+        f"{format_days(prediction)}</div>"
+        f"<div style='font-size:0.85rem; color:var(--clr-text-muted);'>"
+        f"Model average: {format_days(baseline)} &middot; "
+        f"{format_signed_days(prediction - baseline)} from average</div>"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+    contributors = top_contributing_features(explanation, n=3)
+
+    section_title("Prediction Summary")
+    st.markdown(_narrative_summary(contributors, prediction))
+
+    observations = _clinical_observations(explanation, patient)
+    if observations:
+        section_title("Clinical Observations")
+        for obs in observations:
+            icon_name = "check" if obs["normal"] else "alert-triangle"
+            color = config.COLORS["success"] if obs["normal"] else config.COLORS["warning"]
+            st.markdown(
+                f"<div style='display:flex; align-items:center; gap:0.6rem; padding:0.3rem 0;'>"
+                f"<span style='color:{color}; display:inline-flex;'>{get_icon(icon_name, 18)}</span>"
+                f"<span><strong>{obs['label']}:</strong> {obs['status']} ({obs['value_str']})</span>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+
+    st.caption(
+        "The explanation below describes how this prediction was made. "
+        "It should support, not replace, clinical judgement."
+    )
+
+    with st.expander("Patient Factors Contributing to the Prediction"):
+        items = all_contributing_features(explanation, n=8)
+        st.plotly_chart(_contribution_chart(items), width="stretch")
+        st.caption("Red bars increased the predicted stay; blue bars decreased it.")
 
 
 def render() -> None:
@@ -149,47 +283,9 @@ def render() -> None:
         prediction, scaled_row = predict(patient, package, model_name)
         explanation = explain(scaled_row, package, model_name)
         st.session_state["last_prediction"] = {
+            "patient": patient,
             "prediction": prediction,
             "explanation": explanation,
             "model_name": model_name,
         }
-
-    state = st.session_state.get("last_prediction")
-    if not state:
-        return
-
-    st.markdown(
-        f"### Prediction Result "
-        f"<span class='pill' style='vertical-align:middle; margin-left:0.5rem;'>"
-        f"{state.get('model_name', 'Random Forest')}</span>",
-        unsafe_allow_html=True,
-    )
-
-    baseline = float(state["explanation"].base_values)
-    render_metric_row(
-        [
-            {"label": "Predicted Length of Stay", "value": format_days(state["prediction"])},
-            {"label": "Model Average Prediction", "value": format_days(baseline)},
-            {
-                "label": "Difference From Average",
-                "value": format_signed_days(state["prediction"] - baseline),
-            },
-        ]
-    )
-
-    with card():
-        section_title("Why this prediction?")
-        contributors = top_contributing_features(state["explanation"])
-        st.markdown(_plain_english_explanation(contributors, state["prediction"], baseline))
-
-    with card():
-        section_title("How the Model Reached This Number")
-        st.caption(
-            "Starting from the model's average prediction, each bar shows how much "
-            "one patient detail pushed the number up (red) or down (blue) to arrive "
-            "at the final prediction."
-        )
-        shap.plots.waterfall(state["explanation"], show=False)
-        fig = plt.gcf()
-        st.pyplot(fig, width="stretch")
-        plt.close(fig)
+        _show_result_dialog(st.session_state["last_prediction"])

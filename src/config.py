@@ -104,6 +104,20 @@ FEATURE_PHRASES = {
     "Obesity": "having obesity",
 }
 
+# General adult clinical reference ranges, used to flag whether a patient's
+# measurement is within a normal range on the Prediction page. These are
+# widely-cited general reference ranges, not a substitute for clinical
+# guidance, and only apply to the continuous clinical measurement fields.
+CLINICAL_REFERENCE_RANGES = {
+    "Glucose": {"label": "Blood glucose", "low": 70, "high": 99, "unit": "mg/dL"},
+    "Blood Pressure": {"label": "Blood pressure", "low": 90, "high": 120, "unit": "mmHg"},
+    "BMI": {"label": "BMI", "low": 18.5, "high": 24.9, "unit": ""},
+    "Oxygen Saturation": {"label": "Oxygen saturation", "low": 95, "high": 100, "unit": "%"},
+    "Cholesterol": {"label": "Cholesterol", "low": 0, "high": 200, "unit": "mg/dL"},
+    "Triglycerides": {"label": "Triglycerides", "low": 0, "high": 150, "unit": "mg/dL"},
+    "HbA1c": {"label": "HbA1c", "low": 4.0, "high": 5.6, "unit": "%"},
+}
+
 # Display names of binary/flag features (0 or 1 in the raw data). When listing
 # top SHAP contributors for a patient, these should only be surfaced when the
 # patient's actual value is 1/true -- SHAP assigns a value to every one-hot

@@ -59,14 +59,19 @@ _CSS = f"""
     }}
 
     /* Buttons */
+    .stButton > button, .stButton > button p {{
+        color: white !important;
+    }}
     .stButton > button {{
         background: var(--clr-primary);
-        color: white;
         border: none;
         border-radius: 10px;
         padding: 0.6rem 1.4rem;
         font-weight: 600;
         transition: background 0.15s ease, transform 0.1s ease;
+    }}
+    .stButton > button[kind="primary"], .stButton > button[kind="primaryFormSubmit"] {{
+        background: var(--clr-primary);
     }}
     .stButton > button:hover {{
         background: var(--clr-primary-light);
