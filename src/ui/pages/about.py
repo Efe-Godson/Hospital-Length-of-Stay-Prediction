@@ -81,11 +81,12 @@ def render() -> None:
             specific patient — so you can see not just *what* it predicted, but
             *why*.
 
-            On the **Explainability** tab, medical condition, glucose, stress
-            level, HbA1c, blood pressure and sleep all tend to matter most,
-            while smoking, alcohol use and gender tend to matter least. These
-            plots describe patterns the model picked up from this dataset —
-            they're meant to support clinical judgement, not replace it.
+            Across this dataset, medical condition, glucose, stress level,
+            HbA1c, blood pressure and sleep tend to matter most to the model,
+            while smoking, alcohol use and gender tend to matter least. The
+            **Prediction** page shows this breakdown for an individual
+            patient after each prediction — it's meant to support clinical
+            judgement, not replace it.
             """
         )
 

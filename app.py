@@ -3,6 +3,7 @@
 import streamlit as st
 
 from src.ui import theme
+from src.ui.history import render_sidebar_history
 from src.ui.icons import icon
 from src.ui.pages import about, home, insights, prediction
 
@@ -18,7 +19,7 @@ theme.inject_theme()
 PAGES = {
     "Home": home,
     "Prediction": prediction,
-    "Model Insights": insights,
+    "Model Evaluation": insights,
     "About": about,
 }
 PAGE_NAMES = list(PAGES.keys())
@@ -40,5 +41,6 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     st.radio("Navigate", PAGE_NAMES, key="nav_page", label_visibility="collapsed")
+    render_sidebar_history()
 
 PAGES[st.session_state["nav_page"]].render()

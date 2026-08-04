@@ -16,7 +16,16 @@ from src.ui.components import card, page_header, section_title
 from src.ui.icons import icon as get_icon
 from src.utils.formatting import format_days
 
-_SELECT_PLACEHOLDER = "— Select —"
+_MAX_HISTORY = 10
+
+# Widget keys for every patient-data input, so a Reset button can clear them
+# by deleting the keys (the widget then falls back to its default value).
+_INPUT_KEYS = [
+    "age", "gender", "medical_condition", "glucose", "blood_pressure", "bmi",
+    "oxygen_saturation", "cholesterol", "triglycerides", "hba1c",
+    "smoking", "alcohol", "family_history", "physical_activity",
+    "diet_score", "stress_level", "sleep_hours",
+]
 
 # Maps a clinical-measurement feature name to the PatientInput attribute
 # holding its raw (unscaled) value, for the Clinical Observations panel.
@@ -35,45 +44,51 @@ def _entry_form(package: dict) -> tuple[str, PatientInput | None]:
     with card():
         section_title("Demographics")
         c1, c2, c3 = st.columns(3)
-        age = c1.number_input("Age (years)", min_value=0, max_value=120, value=0, step=1)
-        gender = c2.selectbox("Gender", [_SELECT_PLACEHOLDER] + package["gender_options"])
+        age = c1.number_input("Age (years)", min_value=0, max_value=120, value=0, step=1, key="age")
+        gender = c2.selectbox(
+            "Gender", package["gender_options"], index=None, placeholder="Enter or select gender", key="gender"
+        )
         medical_condition = c3.selectbox(
-            "Medical Condition", [_SELECT_PLACEHOLDER] + package["medical_conditions"]
+            "Medical Condition",
+            package["medical_conditions"],
+            index=None,
+            placeholder="Enter or select condition",
+            key="medical_condition",
         )
 
     with card():
         section_title("Clinical Measurements")
         c1, c2, c3 = st.columns(3)
-        glucose = c1.number_input("Glucose (mg/dL)", min_value=0.0, max_value=500.0, value=0.0, step=1.0)
-        blood_pressure = c2.number_input("Blood Pressure (mmHg)", min_value=0.0, max_value=300.0, value=0.0, step=1.0)
-        bmi = c3.number_input("BMI", min_value=0.0, max_value=80.0, value=0.0, step=0.1)
+        glucose = c1.number_input("Glucose (mg/dL)", min_value=0.0, max_value=500.0, value=0.0, step=1.0, key="glucose")
+        blood_pressure = c2.number_input("Blood Pressure (mmHg)", min_value=0.0, max_value=300.0, value=0.0, step=1.0, key="blood_pressure")
+        bmi = c3.number_input("BMI", min_value=0.0, max_value=80.0, value=0.0, step=0.1, key="bmi")
 
         c1, c2, c3 = st.columns(3)
-        oxygen_saturation = c1.number_input("Oxygen Saturation (%)", min_value=0.0, max_value=100.0, value=0.0, step=0.1)
-        cholesterol = c2.number_input("Cholesterol (mg/dL)", min_value=0.0, max_value=600.0, value=0.0, step=1.0)
-        triglycerides = c3.number_input("Triglycerides (mg/dL)", min_value=0.0, max_value=800.0, value=0.0, step=1.0)
+        oxygen_saturation = c1.number_input("Oxygen Saturation (%)", min_value=0.0, max_value=100.0, value=0.0, step=0.1, key="oxygen_saturation")
+        cholesterol = c2.number_input("Cholesterol (mg/dL)", min_value=0.0, max_value=600.0, value=0.0, step=1.0, key="cholesterol")
+        triglycerides = c3.number_input("Triglycerides (mg/dL)", min_value=0.0, max_value=800.0, value=0.0, step=1.0, key="triglycerides")
 
         c1, _, _ = st.columns(3)
-        hba1c = c1.number_input("HbA1c (%)", min_value=0.0, max_value=20.0, value=0.0, step=0.1)
+        hba1c = c1.number_input("HbA1c (%)", min_value=0.0, max_value=20.0, value=0.0, step=0.1, key="hba1c")
 
     with card():
         section_title("Lifestyle Factors")
         c1, c2, c3 = st.columns(3)
-        smoking = c1.toggle("Smoker", value=False)
-        alcohol = c2.toggle("Alcohol Use", value=False)
-        family_history = c3.toggle("Family History of Illness", value=False)
+        smoking = c1.toggle("Smoker", value=False, key="smoking")
+        alcohol = c2.toggle("Alcohol Use", value=False, key="alcohol")
+        family_history = c3.toggle("Family History of Illness", value=False, key="family_history")
 
         c1, c2 = st.columns(2)
-        physical_activity = c1.slider("Physical Activity (hrs/week)", -5.0, 15.0, 0.0, 0.1)
-        diet_score = c2.slider("Diet Score (0-12)", -3.0, 13.0, 0.0, 0.1)
+        physical_activity = c1.slider("Physical Activity (hrs/week)", -5.0, 15.0, 0.0, 0.1, key="physical_activity")
+        diet_score = c2.slider("Diet Score (0-12)", -3.0, 13.0, 0.0, 0.1, key="diet_score")
 
         c1, c2 = st.columns(2)
-        stress_level = c1.slider("Stress Level (0-16)", -3.0, 16.0, 0.0, 0.1)
-        sleep_hours = c2.slider("Sleep Hours (per night)", 0.0, 12.0, 0.0, 0.1)
+        stress_level = c1.slider("Stress Level (0-16)", -3.0, 16.0, 0.0, 0.1, key="stress_level")
+        sleep_hours = c2.slider("Sleep Hours (per night)", 0.0, 12.0, 0.0, 0.1, key="sleep_hours")
 
     model_names = list(package.get("models", {}).keys()) or [package.get("default_model_name", "Random Forest")]
     default_name = package.get("default_model_name", model_names[0])
-    c1, c2 = st.columns(2)
+    c1, c2, c3 = st.columns([2, 1, 1])
     with c1:
         model_name = st.selectbox(
             "Model",
@@ -84,12 +99,21 @@ def _entry_form(package: dict) -> tuple[str, PatientInput | None]:
         )
     with c2:
         st.markdown("<div style='height: 1.7rem;'></div>", unsafe_allow_html=True)
+        reset = st.button("Reset", width="stretch", icon=":material/restart_alt:")
+    with c3:
+        st.markdown("<div style='height: 1.7rem;'></div>", unsafe_allow_html=True)
         submitted = st.button("Predict Length of Stay", type="primary", width="stretch")
+
+    if reset:
+        for key in _INPUT_KEYS:
+            st.session_state.pop(key, None)
+        st.session_state.pop("last_prediction", None)
+        st.rerun()
 
     if not submitted:
         return model_name, None
 
-    if gender == _SELECT_PLACEHOLDER or medical_condition == _SELECT_PLACEHOLDER:
+    if gender is None or medical_condition is None:
         st.error("Please select a Gender and Medical Condition before predicting.")
         return model_name, None
 
@@ -216,17 +240,60 @@ def _contribution_chart(items: list[tuple[str, float]]) -> go.Figure:
     return fig
 
 
+def _record_history(state: dict) -> None:
+    """Log a lightweight summary of this prediction, most recent first, capped at _MAX_HISTORY."""
+    patient = state["patient"]
+    entry = {
+        "model_name": state["model_name"],
+        "prediction": state["prediction"],
+        "age": patient.age,
+        "gender": patient.gender,
+        "medical_condition": patient.medical_condition,
+    }
+    history = st.session_state.setdefault("prediction_history", [])
+    history.insert(0, entry)
+    del history[_MAX_HISTORY:]
+
+
+def _recompute(state: dict, package: dict, model_name: str) -> None:
+    """Re-run prediction/explanation for the same patient under a different model."""
+    prediction, scaled_row = predict(state["patient"], package, model_name)
+    explanation = explain(scaled_row, package, model_name)
+    state["prediction"] = prediction
+    state["explanation"] = explanation
+    state["model_name"] = model_name
+    if st.session_state.get("prediction_history"):
+        st.session_state["prediction_history"][0]["model_name"] = model_name
+        st.session_state["prediction_history"][0]["prediction"] = prediction
+
+
 @st.dialog("Prediction Result", width="large")
-def _show_result_dialog(state: dict) -> None:
+def _show_result_dialog(state: dict, package: dict) -> None:
+    model_names = list(package.get("models", {}).keys()) or [state.get("model_name", "Random Forest")]
+
+    st.markdown(
+        "<div style='text-align:center; margin: 0 0 0.5rem;'>", unsafe_allow_html=True
+    )
+    picked = st.selectbox(
+        "Model used",
+        model_names,
+        index=model_names.index(state["model_name"]),
+        key="dialog_model_select",
+        label_visibility="collapsed",
+    )
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    if picked != state["model_name"]:
+        _recompute(state, package, picked)
+
     prediction = state["prediction"]
     explanation = state["explanation"]
     patient = state["patient"]
 
     st.markdown(
         f"<div style='text-align:center; margin: 0 0 1.25rem;'>"
-        f"<span class='pill'>{state.get('model_name', 'Random Forest')}</span>"
         f"<div style='font-size:0.85rem; color:var(--clr-text-muted); text-transform:uppercase; "
-        f"letter-spacing:0.05em; margin-top:0.75rem;'>Predicted Length of Stay</div>"
+        f"letter-spacing:0.05em;'>Predicted Length of Stay</div>"
         f"<div style='font-size:3.4rem; font-weight:800; color:var(--clr-primary); line-height:1.15;'>"
         f"{format_days(prediction)}</div>"
         f"</div>",
@@ -263,6 +330,24 @@ def _show_result_dialog(state: dict) -> None:
         st.caption("Red bars increased the predicted stay; blue bars decreased it.")
 
 
+def _render_last_prediction_card() -> None:
+    history = st.session_state.get("prediction_history")
+    if not history:
+        return
+    last = history[0]
+    with card():
+        section_title("Last Prediction")
+        st.markdown(
+            f"<div style='display:flex; justify-content:space-between; align-items:center;'>"
+            f"<span>{last['gender']}, {last['age']:.0f} &middot; {last['medical_condition']} "
+            f"&middot; <span class='pill'>{last['model_name']}</span></span>"
+            f"<span style='font-size:1.4rem; font-weight:700; color:var(--clr-primary);'>"
+            f"{format_days(last['prediction'])}</span>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
+
 def render() -> None:
     page_header(
         "Length of Stay Prediction",
@@ -283,4 +368,7 @@ def render() -> None:
             "explanation": explanation,
             "model_name": model_name,
         }
-        _show_result_dialog(st.session_state["last_prediction"])
+        _record_history(st.session_state["last_prediction"])
+        _show_result_dialog(st.session_state["last_prediction"], package)
+
+    _render_last_prediction_card()

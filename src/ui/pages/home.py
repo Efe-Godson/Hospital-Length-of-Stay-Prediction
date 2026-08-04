@@ -26,7 +26,7 @@ def render() -> None:
 
     cards = [
         ("stethoscope", "Prediction", "Enter patient details and generate an individual length-of-stay estimate with explanation."),
-        ("chart-bar", "Model Insights", "Compare the five regression models evaluated and explore SHAP explainability."),
+        ("chart-bar", "Model Evaluation", "Compare the five regression models evaluated and see why Random Forest was chosen."),
     ]
 
     cols = st.columns(2)
