@@ -14,7 +14,7 @@ from src.model.predictor import (
 )
 from src.ui.components import card, page_header, section_title
 from src.ui.icons import icon as get_icon
-from src.utils.formatting import format_days, format_signed_days
+from src.utils.formatting import format_days
 
 _SELECT_PLACEHOLDER = "— Select —"
 
@@ -142,20 +142,19 @@ def _narrative_summary(contributors: dict, prediction: float) -> str:
     days = format_days(prediction)
 
     if not increasing and not decreasing:
-        return f"The model predicts an estimated hospital stay of **{days}**, close to its typical prediction."
+        return f"The model predicts an estimated stay of **{days}**, close to its typical prediction."
 
     clauses = []
     if increasing:
-        lead = _describe(increasing[0])
-        clauses.append(f"{lead[0].upper()}{lead[1:]} increased the expected hospital stay")
+        lead = _bare(increasing[0])
+        clauses.append(f"The patient's {lead} increased the expected hospital stay")
     if decreasing:
-        bare = _join_naturally([_bare(name) for name in decreasing])
-        verb = "was" if len(decreasing) == 1 else "were"
-        clause = f"{bare} {verb} associated with a shorter recovery period"
+        nouns = _join_naturally([config.FEATURE_BARE_NOUNS.get(name, name) for name in decreasing])
+        clause = f"{nouns} suggested a shorter recovery period"
         clauses.append(clause if not clauses else f"while {clause}")
 
     body = clauses[0] if len(clauses) == 1 else f"{clauses[0]}, {clauses[1]}"
-    return f"{body}, resulting in an estimated hospital stay of **{days}**."
+    return f"{body}, resulting in an estimated stay of **{days}**."
 
 
 def _clinical_observations(explanation, patient: PatientInput) -> list[dict]:
@@ -222,7 +221,6 @@ def _show_result_dialog(state: dict) -> None:
     prediction = state["prediction"]
     explanation = state["explanation"]
     patient = state["patient"]
-    baseline = float(explanation.base_values)
 
     st.markdown(
         f"<div style='text-align:center; margin: 0 0 1.25rem;'>"
@@ -231,16 +229,13 @@ def _show_result_dialog(state: dict) -> None:
         f"letter-spacing:0.05em; margin-top:0.75rem;'>Predicted Length of Stay</div>"
         f"<div style='font-size:3.4rem; font-weight:800; color:var(--clr-primary); line-height:1.15;'>"
         f"{format_days(prediction)}</div>"
-        f"<div style='font-size:0.85rem; color:var(--clr-text-muted);'>"
-        f"Model average: {format_days(baseline)} &middot; "
-        f"{format_signed_days(prediction - baseline)} from average</div>"
         f"</div>",
         unsafe_allow_html=True,
     )
 
     contributors = top_contributing_features(explanation, n=3)
 
-    section_title("Prediction Summary")
+    section_title("Summary")
     st.markdown(_narrative_summary(contributors, prediction))
 
     observations = _clinical_observations(explanation, patient)

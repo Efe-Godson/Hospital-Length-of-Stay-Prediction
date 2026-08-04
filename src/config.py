@@ -118,6 +118,36 @@ CLINICAL_REFERENCE_RANGES = {
     "HbA1c": {"label": "HbA1c", "low": 4.0, "high": 5.6, "unit": "%"},
 }
 
+# Short bare nouns for each feature, used when several features are listed
+# together in a sentence (e.g. "glucose, triglycerides and oxygen saturation
+# suggested a shorter recovery period") -- unlike FEATURE_PHRASES, these drop
+# "level"/"their"/"having" since repeating a suffix across a list reads
+# clunkily ("glucose level, triglyceride level and oxygen saturation level").
+FEATURE_BARE_NOUNS = {
+    "Age": "age",
+    "Glucose": "glucose",
+    "Blood Pressure": "blood pressure",
+    "BMI": "BMI",
+    "Oxygen Saturation": "oxygen saturation",
+    "Cholesterol": "cholesterol",
+    "Triglycerides": "triglycerides",
+    "HbA1c": "HbA1c",
+    "Smoking": "smoking",
+    "Alcohol": "alcohol use",
+    "Physical Activity": "physical activity",
+    "Diet Score": "diet score",
+    "Family History": "family history",
+    "Stress Level": "stress level",
+    "Sleep Hours": "sleep",
+    "Male": "being male",
+    "Asthma": "asthma",
+    "Cancer": "cancer",
+    "Diabetes": "diabetes",
+    "Healthy": "not having an underlying condition on record",
+    "Hypertension": "hypertension",
+    "Obesity": "obesity",
+}
+
 # Display names of binary/flag features (0 or 1 in the raw data). When listing
 # top SHAP contributors for a patient, these should only be surfaced when the
 # patient's actual value is 1/true -- SHAP assigns a value to every one-hot
