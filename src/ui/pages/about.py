@@ -72,19 +72,20 @@ def render() -> None:
         section_title("Understanding SHAP Explanations")
         st.markdown(
             """
-            SHAP (SHapley Additive exPlanations) explains a machine learning
-            model's output by calculating how much each input feature pushed a
-            given prediction higher or lower compared to the model's average
-            prediction. Adding up all of a patient's feature contributions,
-            starting from that average, reconstructs the model's final predicted
-            length of stay.
+            SHAP (SHapley Additive exPlanations) is a way of breaking down a
+            model's prediction into the contribution of each individual patient
+            detail. Start from the model's average prediction, then add or
+            subtract a little for each detail (age, glucose, medical condition,
+            and so on) based on how it compares to a typical patient. Add all of
+            those up and you get back the model's final prediction for that
+            specific patient — so you can see not just *what* it predicted, but
+            *why*.
 
-            On the **Explainability** tab, medical condition, Glucose, Stress
-            Level, HbA1c, Blood Pressure and Sleep Hours are the strongest
-            overall contributors, while Smoking, Alcohol and Gender have
-            comparatively small effects. These plots describe the model's
-            learned behaviour on this dataset and should support, not replace,
-            clinical judgement.
+            On the **Explainability** tab, medical condition, glucose, stress
+            level, HbA1c, blood pressure and sleep all tend to matter most,
+            while smoking, alcohol use and gender tend to matter least. These
+            plots describe patterns the model picked up from this dataset —
+            they're meant to support clinical judgement, not replace it.
             """
         )
 

@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 import shap
 import streamlit as st
 
+from src import config
 from src.model.loader import load_deployment_package
 from src.model.predictor import PatientInput, explain, predict, top_contributing_features
 from src.ui.components import card, page_header, render_metric_row, section_title
 from src.ui.icons import icon as get_icon
-from src.utils.formatting import format_days, format_signed
+from src.utils.formatting import format_days, format_signed_days
 
 
 def _model_selector(package: dict) -> str:
@@ -93,18 +94,40 @@ def _entry_form(package: dict) -> PatientInput | None:
     )
 
 
+def _describe(name: str) -> str:
+    return config.FEATURE_PHRASES.get(name, name)
+
+
+def _join_naturally(phrases: list[str]) -> str:
+    if len(phrases) == 1:
+        return phrases[0]
+    if len(phrases) == 2:
+        return f"{phrases[0]} and {phrases[1]}"
+    return ", ".join(phrases[:-1]) + f" and {phrases[-1]}"
+
+
 def _plain_english_explanation(contributors: dict, prediction: float, baseline: float) -> str:
-    direction = "longer" if prediction > baseline else "shorter"
-    lines = [
-        f"The model predicts a length of stay **{format_days(prediction)}**, which is "
-        f"{direction} than the model's average prediction of {format_days(baseline)}."
-    ]
+    rounded_prediction, rounded_baseline = round(prediction), round(baseline)
+
+    if rounded_prediction == rounded_baseline:
+        lines = [
+            f"The model predicts a stay of **{format_days(prediction)}**, about the same "
+            f"as its average prediction of {format_days(baseline)}."
+        ]
+    else:
+        direction = "longer" if prediction > baseline else "shorter"
+        lines = [
+            f"The model predicts a stay of **{format_days(prediction)}**, which is "
+            f"{direction} than its average prediction of {format_days(baseline)}."
+        ]
+
     if contributors["increasing"]:
-        names = ", ".join(name for name, _ in contributors["increasing"])
-        lines.append(f"Factors **increasing** the predicted stay: {names}.")
+        phrases = _join_naturally([_describe(name) for name, _ in contributors["increasing"]])
+        lines.append(f"This was pushed **up** mainly by {phrases}.")
     if contributors["decreasing"]:
-        names = ", ".join(name for name, _ in contributors["decreasing"])
-        lines.append(f"Factors **decreasing** the predicted stay: {names}.")
+        phrases = _join_naturally([_describe(name) for name, _ in contributors["decreasing"]])
+        lines.append(f"This was pulled **down** mainly by {phrases}.")
+
     return "  \n".join(lines)
 
 
@@ -147,7 +170,7 @@ def render() -> None:
             {"label": "Model Average Prediction", "value": format_days(baseline)},
             {
                 "label": "Difference From Average",
-                "value": format_signed(state["prediction"] - baseline, 1) + " days",
+                "value": format_signed_days(state["prediction"] - baseline),
             },
         ]
     )
@@ -158,10 +181,11 @@ def render() -> None:
         st.markdown(_plain_english_explanation(contributors, state["prediction"], baseline))
 
     with card():
-        section_title("Local SHAP Explanation")
+        section_title("How the Model Reached This Number")
         st.caption(
-            "This waterfall plot shows how each patient characteristic pushed the "
-            "prediction above or below the model's average output."
+            "Starting from the model's average prediction, each bar shows how much "
+            "one patient detail pushed the number up (red) or down (blue) to arrive "
+            "at the final prediction."
         )
         shap.plots.waterfall(state["explanation"], show=False)
         fig = plt.gcf()

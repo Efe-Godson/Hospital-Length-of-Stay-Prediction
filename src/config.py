@@ -76,6 +76,34 @@ DISPLAY_NAME_OVERRIDES = {
     "Medical Condition_Obesity": "Obesity",
 }
 
+# Plain-language phrases for each display feature name, used to turn a bare
+# name like "BMI" or "Healthy" into a readable clause (e.g. "their BMI",
+# "not having an underlying condition on record") for a lay audience.
+FEATURE_PHRASES = {
+    "Age": "their age",
+    "Glucose": "their glucose level",
+    "Blood Pressure": "their blood pressure",
+    "BMI": "their BMI",
+    "Oxygen Saturation": "their oxygen saturation level",
+    "Cholesterol": "their cholesterol level",
+    "Triglycerides": "their triglyceride level",
+    "HbA1c": "their HbA1c level",
+    "Smoking": "smoking",
+    "Alcohol": "alcohol use",
+    "Physical Activity": "their physical activity level",
+    "Diet Score": "their diet score",
+    "Family History": "a family history of illness",
+    "Stress Level": "their stress level",
+    "Sleep Hours": "how much they sleep",
+    "Male": "being male",
+    "Asthma": "having asthma",
+    "Cancer": "having cancer",
+    "Diabetes": "having diabetes",
+    "Healthy": "not having an underlying condition on record",
+    "Hypertension": "having hypertension",
+    "Obesity": "having obesity",
+}
+
 # Display names of binary/flag features (0 or 1 in the raw data). When listing
 # top SHAP contributors for a patient, these should only be surfaced when the
 # patient's actual value is 1/true -- SHAP assigns a value to every one-hot

@@ -11,8 +11,9 @@ from src.ui.components import card, section_title
 
 def render_body(model_name: str | None = None) -> None:
     st.caption(
-        "SHAP explains which patient factors drive predictions overall. "
-        "See the **About** page for how it works."
+        "SHAP is a way of showing which patient details the model leans on most, "
+        "and whether each one tends to push predicted stays up or down. See the "
+        "**About** page for more detail."
     )
 
     if not st.session_state.get("shap_tab_loaded"):
@@ -30,10 +31,10 @@ def render_body(model_name: str | None = None) -> None:
     with card():
         section_title("SHAP Summary Plot")
         st.caption(
-            "Each dot is one patient. Position on the horizontal axis shows whether "
-            "that feature increased (right) or decreased (left) the predicted length "
-            "of stay for that patient. Colour shows whether the feature's value was "
-            "high (red) or low (blue) for that patient."
+            "Each dot is one patient. A dot on the right means that detail made the "
+            "stay longer for that patient; on the left means it made it shorter. "
+            "Red dots are patients with a higher value for that detail, blue dots "
+            "are lower (e.g. red on Glucose means a high glucose reading)."
         )
         fig, ax = plt.subplots()
         shap.summary_plot(shap_values, display_df, show=False)
@@ -43,9 +44,9 @@ def render_body(model_name: str | None = None) -> None:
     with card():
         section_title("SHAP Feature Importance")
         st.caption(
-            "Ranks features by their average absolute impact on predictions: the "
-            "higher the bar, the more that feature influences the model overall, "
-            "regardless of direction."
+            "This ranks patient details by how much they matter to the model on "
+            "average, regardless of whether they push a stay up or down: the "
+            "longer the bar, the bigger its overall influence."
         )
         mean_abs = np.abs(shap_values).mean(axis=0)
         order = np.argsort(mean_abs)
