@@ -21,9 +21,9 @@ def render() -> None:
     default_name = package.get("default_model_name", model_names[0])
 
     with card():
-        section_title("Compare Model")
+        section_title("Select Model")
         selected_name = st.selectbox(
-            "Compare model",
+            "Select model",
             model_names,
             index=model_names.index(default_name),
             label_visibility="collapsed",

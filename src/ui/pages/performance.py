@@ -9,7 +9,6 @@ from src import config
 from src.model.loader import load_deployment_package, load_model_dataset, load_model_results
 from src.model.predictor import resolve_model
 from src.ui.components import card, render_metric_row, section_title
-from src.ui.icons import icon as get_icon
 
 
 def _measure_prediction_time(package: dict, model_name: str) -> float:
@@ -88,27 +87,13 @@ def render_body(model_name: str | None = None) -> None:
 
     selected = results_sorted[results_sorted["Model"] == selected_name].iloc[0]
 
-    if best_name == "Random Forest":
-        with card():
-            st.markdown(
-                f"<div style='display:flex; align-items:flex-start; gap:0.75rem;'>"
-                f"<span style='color:{config.COLORS['success']}; margin-top:0.15rem;'>"
-                f"{get_icon('check', 22)}</span>"
-                f"<div>"
-                f"<div style='font-weight:700; margin-bottom:0.35rem;'>"
-                f"Random Forest was selected as the deployed model</div>"
-                f"<div style='color:var(--clr-text-muted); font-size:0.95rem; line-height:1.6;'>"
-                f"It achieved the lowest prediction error among the five models compared, "
-                f"while maintaining strong overall accuracy. It took the longest to train, "
-                f"but training happens only once during development, so this trade-off doesn't "
-                f"affect how fast predictions are made for new patients."
-                f"</div></div></div>",
-                unsafe_allow_html=True,
-            )
-
     render_metric_row(
         [
-            {"label": "Selected Model", "value": selected["Model"], "sub": "Best overall performer"},
+            {
+                "label": "Selected Model",
+                "value": selected["Model"],
+                "sub": "Best overall performer" if selected_name == best_name else "",
+            },
             {"label": "Mean Absolute Error", "value": f"≈ {selected['MAE']:.1f} days", "sub": "Average prediction error"},
             {"label": "Root Mean Square Error", "value": f"≈ {selected['RMSE']:.1f} days", "sub": "Penalises larger errors"},
             {"label": "Variation Explained", "value": f"{selected['R²'] * 100:.0f}%", "sub": "R² score"},
