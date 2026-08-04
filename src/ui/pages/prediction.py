@@ -99,15 +99,14 @@ def _entry_form(package: dict) -> tuple[str, PatientInput | None]:
         )
     with c2:
         st.markdown("<div style='height: 1.7rem;'></div>", unsafe_allow_html=True)
-        reset = st.button("Reset", width="stretch", icon=":material/restart_alt:")
+        submitted = st.button("Predict Length of Stay", type="primary", width="stretch")
     with c3:
         st.markdown("<div style='height: 1.7rem;'></div>", unsafe_allow_html=True)
-        submitted = st.button("Predict Length of Stay", type="primary", width="stretch")
+        reset = st.button("Reset", width="stretch", icon=":material/restart_alt:")
 
     if reset:
         for key in _INPUT_KEYS:
             st.session_state.pop(key, None)
-        st.session_state.pop("last_prediction", None)
         st.rerun()
 
     if not submitted:
@@ -241,30 +240,25 @@ def _contribution_chart(items: list[tuple[str, float]]) -> go.Figure:
 
 
 def _record_history(state: dict) -> None:
-    """Log a lightweight summary of this prediction, most recent first, capped at _MAX_HISTORY."""
-    patient = state["patient"]
-    entry = {
-        "model_name": state["model_name"],
-        "prediction": state["prediction"],
-        "age": patient.age,
-        "gender": patient.gender,
-        "medical_condition": patient.medical_condition,
-    }
+    """Log this prediction (by reference, so later model switches stay in sync),
+    most recent first, capped at _MAX_HISTORY."""
     history = st.session_state.setdefault("prediction_history", [])
-    history.insert(0, entry)
+    history.insert(0, state)
     del history[_MAX_HISTORY:]
 
 
 def _recompute(state: dict, package: dict, model_name: str) -> None:
-    """Re-run prediction/explanation for the same patient under a different model."""
+    """Re-run prediction/explanation for the same patient under a different model.
+
+    Mutates state in place -- since history entries are stored by reference
+    (see _record_history), this keeps the sidebar history in sync too,
+    regardless of the entry's position in the list.
+    """
     prediction, scaled_row = predict(state["patient"], package, model_name)
     explanation = explain(scaled_row, package, model_name)
     state["prediction"] = prediction
     state["explanation"] = explanation
     state["model_name"] = model_name
-    if st.session_state.get("prediction_history"):
-        st.session_state["prediction_history"][0]["model_name"] = model_name
-        st.session_state["prediction_history"][0]["prediction"] = prediction
 
 
 @st.dialog("Prediction Result", width="large")
@@ -327,25 +321,7 @@ def _show_result_dialog(state: dict, package: dict) -> None:
     with st.expander("Patient Factors Contributing to the Prediction"):
         items = all_contributing_features(explanation, n=8)
         st.plotly_chart(_contribution_chart(items), width="stretch")
-        st.caption("Red bars increased the predicted stay; blue bars decreased it.")
-
-
-def _render_last_prediction_card() -> None:
-    history = st.session_state.get("prediction_history")
-    if not history:
-        return
-    last = history[0]
-    with card():
-        section_title("Last Prediction")
-        st.markdown(
-            f"<div style='display:flex; justify-content:space-between; align-items:center;'>"
-            f"<span>{last['gender']}, {last['age']:.0f} &middot; {last['medical_condition']} "
-            f"&middot; <span class='pill'>{last['model_name']}</span></span>"
-            f"<span style='font-size:1.4rem; font-weight:700; color:var(--clr-primary);'>"
-            f"{format_days(last['prediction'])}</span>"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
+        st.caption("Red means it added days to the stay. Blue means it took days away.")
 
 
 def render() -> None:
@@ -362,13 +338,17 @@ def render() -> None:
     if patient is not None:
         prediction, scaled_row = predict(patient, package, model_name)
         explanation = explain(scaled_row, package, model_name)
-        st.session_state["last_prediction"] = {
+        state = {
             "patient": patient,
             "prediction": prediction,
             "explanation": explanation,
             "model_name": model_name,
         }
-        _record_history(st.session_state["last_prediction"])
-        _show_result_dialog(st.session_state["last_prediction"], package)
-
-    _render_last_prediction_card()
+        _record_history(state)
+        _show_result_dialog(state, package)
+    else:
+        # Clicking an entry in the sidebar history navigates here and asks
+        # to reopen its result popup (see src/ui/history.py).
+        reopened = st.session_state.pop("reopen_history_state", None)
+        if reopened is not None:
+            _show_result_dialog(reopened, package)

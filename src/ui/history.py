@@ -6,7 +6,10 @@ from src.utils.formatting import format_days
 
 
 def render_sidebar_history() -> None:
-    """Fills the sidebar's remaining space with a running log of predictions made this session."""
+    """Fills the sidebar's remaining space with a running log of predictions made
+    this session. Clicking an entry jumps to the Prediction page and reopens
+    that prediction's result popup.
+    """
     st.markdown(
         "<div style='color: var(--clr-text-muted); font-size:0.78rem; font-weight:600; "
         "text-transform:uppercase; letter-spacing:0.05em; margin: 1.5rem 0 0.5rem;'>"
@@ -19,15 +22,11 @@ def render_sidebar_history() -> None:
         st.caption("No predictions yet this session. Results will appear here.")
         return
 
-    for entry in history:
-        st.markdown(
-            f"<div style='padding: 0.5rem 0; border-bottom: 1px solid rgba(15, 110, 99, 0.15);'>"
-            f"<div style='font-size:0.85rem;'>{entry['gender']}, {entry['age']:.0f} &middot; "
-            f"{entry['medical_condition']}</div>"
-            f"<div style='display:flex; justify-content:space-between; align-items:center; margin-top:0.15rem;'>"
-            f"<span class='pill' style='font-size:0.7rem; padding:0.15rem 0.5rem;'>{entry['model_name']}</span>"
-            f"<span style='font-weight:700; color:var(--clr-primary);'>{format_days(entry['prediction'])}</span>"
-            f"</div>"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
+    for i, entry in enumerate(history):
+        patient = entry["patient"]
+        label = f"{patient.medical_condition} · {format_days(entry['prediction'])}"
+        help_text = f"{patient.gender}, {patient.age:.0f} · {entry['model_name']}"
+        if st.button(label, key=f"history_entry_{i}", width="stretch", help=help_text):
+            st.session_state["reopen_history_state"] = entry
+            st.session_state["requested_page"] = "Prediction"
+            st.rerun()

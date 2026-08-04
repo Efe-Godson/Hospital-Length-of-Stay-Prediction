@@ -28,6 +28,23 @@ def render() -> None:
         )
 
     with card():
+        section_title("Dataset Summary")
+        df = load_raw_dataset()
+        render_metric_row(
+            [
+                {"label": "Patient Records", "value": f"{len(df):,}"},
+                {"label": "Original Variables", "value": str(df.shape[1])},
+                {"label": "Predictors Used", "value": "22"},
+                {"label": "Target Variable", "value": "LengthOfStay"},
+            ]
+        )
+        st.caption(
+            "Source: Healthcare Risk Factors Dataset. Two non-informative columns "
+            "(random text and synthetic noise) were identified and removed during "
+            "preprocessing."
+        )
+
+    with card():
         section_title("Machine Learning Workflow")
         st.markdown(
             """
@@ -102,23 +119,6 @@ def render() -> None:
             - **Streamlit:** interactive web application
             - **Plotly / Matplotlib:** data visualisation
             """
-        )
-
-    with card():
-        section_title("Dataset Summary")
-        df = load_raw_dataset()
-        render_metric_row(
-            [
-                {"label": "Patient Records", "value": f"{len(df):,}"},
-                {"label": "Original Variables", "value": str(df.shape[1])},
-                {"label": "Predictors Used", "value": "22"},
-                {"label": "Target Variable", "value": "LengthOfStay"},
-            ]
-        )
-        st.caption(
-            "Source: Healthcare Risk Factors Dataset. Two non-informative columns "
-            "(random text and synthetic noise) were identified and removed during "
-            "preprocessing."
         )
 
     with card():
