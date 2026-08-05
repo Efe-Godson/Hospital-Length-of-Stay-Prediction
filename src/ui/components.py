@@ -53,16 +53,6 @@ def render_metric_row(metrics: list[dict]) -> None:
             )
 
 
-def nav_card(icon: str, title: str, description: str) -> str:
-    return (
-        "<div class='nav-card'>"
-        f"<div class='nav-icon'>{icon}</div>"
-        f"<h4>{title}</h4>"
-        f"<p>{description}</p>"
-        "</div>"
-    )
-
-
 @contextmanager
 def card():
     """A bordered card container. Use as `with card(): ...` instead of manually

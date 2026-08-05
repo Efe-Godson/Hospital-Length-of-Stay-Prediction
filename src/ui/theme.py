@@ -126,39 +126,6 @@ _CSS = f"""
         margin-top: 0.25rem;
     }}
 
-    /* Nav / feature cards */
-    .nav-card {{
-        background: var(--clr-surface);
-        border: 1px solid var(--clr-border);
-        border-radius: 16px;
-        padding: 1.4rem 1.5rem;
-        height: 210px;
-        display: flex;
-        flex-direction: column;
-        transition: box-shadow 0.15s ease, transform 0.15s ease;
-    }}
-    .nav-card:hover {{
-        box-shadow: 0 6px 18px rgba(15, 110, 99, 0.12);
-        transform: translateY(-2px);
-    }}
-    .nav-card .nav-icon {{
-        color: var(--clr-primary);
-        margin-bottom: 0.5rem;
-    }}
-    .nav-card .nav-icon svg {{
-        width: 26px;
-        height: 26px;
-    }}
-    .nav-card h4 {{
-        margin: 0 0 0.35rem 0;
-    }}
-    .nav-card p {{
-        color: var(--clr-text-muted);
-        font-size: 0.9rem;
-        margin: 0;
-        flex-grow: 1;
-    }}
-
     /* Pill / badge */
     .pill {{
         display: inline-block;
