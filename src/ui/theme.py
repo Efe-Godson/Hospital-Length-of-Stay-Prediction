@@ -81,6 +81,22 @@ _CSS = f"""
         transform: translateY(0);
     }}
 
+    /* Floating "Make a Prediction" button on the home page. */
+    div[class*="st-key-floating_predict_btn"] {{
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        z-index: 999;
+        width: auto;
+    }}
+    div[class*="st-key-floating_predict_btn"] .stButton > button {{
+        border-radius: 999px;
+        padding: 0.75rem 1.5rem;
+        box-shadow: 0 4px 14px rgba(15, 110, 99, 0.35);
+        background: var(--clr-primary);
+        color: #fff;
+    }}
+
     /* Generic card: Streamlit's native bordered container, restyled.
        Used via the `card()` context manager in src/ui/components.py, which
        gives each container a key "card_N" -> CSS class "st-key-card_N". */
