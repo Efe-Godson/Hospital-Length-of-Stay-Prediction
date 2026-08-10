@@ -137,19 +137,6 @@ def _entry_form(package: dict) -> tuple[str, PatientInput | None]:
     )
 
 
-def _describe(name: str) -> str:
-    return config.FEATURE_PHRASES.get(name, name)
-
-
-def _bare(name: str) -> str:
-    """Strip a leading possessive/verb from a feature phrase, for use mid-list."""
-    phrase = _describe(name)
-    for prefix in ("not having ", "having ", "their ", "a ", "being "):
-        if phrase.startswith(prefix):
-            return phrase[len(prefix):]
-    return phrase
-
-
 def _join_naturally(phrases: list[str]) -> str:
     if len(phrases) == 1:
         return phrases[0]
@@ -159,25 +146,33 @@ def _join_naturally(phrases: list[str]) -> str:
 
 
 def _narrative_summary(contributors: dict, prediction: float) -> str:
-    """A short flowing paragraph in the style of a clinical report summary."""
+    """A short two-sentence summary: the headline prediction, then what drove it."""
     increasing = [name for name, _ in contributors["increasing"]]
     decreasing = [name for name, _ in contributors["decreasing"]]
     days = format_days(prediction)
+    headline = f"The model predicts a hospital stay of around **{days}**."
 
     if not increasing and not decreasing:
-        return f"The model predicts an estimated stay of **{days}**, close to its typical prediction."
+        return f"{headline} No single factor stood out as a major driver for this patient."
 
-    clauses = []
+    def phrase(names: list[str]) -> str:
+        if len(names) == 1:
+            return config.FEATURE_BARE_NOUNS.get(names[0], names[0])
+        lead = config.FEATURE_BARE_NOUNS.get(names[0], names[0])
+        return f"{lead} and several other factors"
+
+    if increasing and decreasing:
+        down = _join_naturally([config.FEATURE_BARE_NOUNS.get(name, name) for name in decreasing])
+        return (
+            f"{headline} For this patient, {phrase(increasing)} pushed the estimate "
+            f"higher, while {down} pushed it lower."
+        )
+
     if increasing:
-        lead = _bare(increasing[0])
-        clauses.append(f"The patient's {lead} increased the expected hospital stay")
-    if decreasing:
-        nouns = _join_naturally([config.FEATURE_BARE_NOUNS.get(name, name) for name in decreasing])
-        clause = f"{nouns} suggested a shorter recovery period"
-        clauses.append(clause if not clauses else f"while {clause}")
+        return f"{headline} For this patient, {phrase(increasing)} pushed the estimate higher."
 
-    body = clauses[0] if len(clauses) == 1 else f"{clauses[0]}, {clauses[1]}"
-    return f"{body}, resulting in an estimated stay of **{days}**."
+    down = _join_naturally([config.FEATURE_BARE_NOUNS.get(name, name) for name in decreasing])
+    return f"{headline} For this patient, {down} pushed the estimate lower."
 
 
 def _clinical_observations(explanation, patient: PatientInput) -> list[dict]:
@@ -318,10 +313,14 @@ def _show_result_dialog(state: dict, package: dict) -> None:
         "It should support, not replace, clinical judgement."
     )
 
-    with st.expander("Patient Factors Contributing to the Prediction"):
-        items = all_contributing_features(explanation, n=8)
-        st.plotly_chart(_contribution_chart(items), width="stretch")
-        st.caption("Red means it added days to the stay. Blue means it took days away.")
+    section_title("SHAP: Patient Factors Contributing to the Prediction")
+    items = all_contributing_features(explanation, n=8)
+    st.plotly_chart(_contribution_chart(items), width="stretch")
+    st.caption(
+        "How to read: Red factors increased the predicted stay, while blue factors "
+        "reduced it. Longer bars indicate greater influence on this prediction. "
+        "These are model contributions, not direct causes of length of stay."
+    )
 
 
 def render() -> None:
