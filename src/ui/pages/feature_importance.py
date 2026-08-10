@@ -42,18 +42,19 @@ def _global_importance(_package: dict, model_name: str) -> pd.DataFrame:
     return importance.sort_values("Mean |SHAP value|", ascending=False).reset_index(drop=True)
 
 
-def _importance_chart(df: pd.DataFrame) -> go.Figure:
+def _importance_chart(df: pd.DataFrame, color: str, x_max: float | None = None) -> go.Figure:
     sorted_df = df.sort_values("Mean |SHAP value|")
     fig = go.Figure(
         go.Bar(
             x=sorted_df["Mean |SHAP value|"],
             y=sorted_df["Feature"],
             orientation="h",
-            marker_color=config.COLORS["primary"],
+            marker_color=color,
         )
     )
     fig.update_layout(
-        xaxis_title="Mean |SHAP value| (days) — average impact on the prediction",
+        xaxis_title="Mean |SHAP value| (days), average impact on the prediction",
+        xaxis_range=[0, x_max] if x_max else None,
         yaxis_title="",
         height=560,
         margin=dict(l=10, r=10, t=10, b=10),
@@ -80,23 +81,65 @@ def render() -> None:
 
     with card():
         section_title("Select Model")
-        selected_name = st.selectbox(
-            "Select model",
-            model_names,
-            index=model_names.index(default_name),
-            label_visibility="collapsed",
-            help="View the SHAP-based feature importance for any of the evaluated models.",
+        compare_mode = st.toggle(
+            "Compare two models",
+            help="Show the SHAP-based feature importance for two models side by side.",
         )
 
-    importance = _global_importance(package, selected_name)
+        if compare_mode:
+            col_a, col_b = st.columns(2)
+            with col_a:
+                name_a = st.selectbox(
+                    "Model A", model_names, index=model_names.index(default_name)
+                )
+            with col_b:
+                other_names = [m for m in model_names if m != name_a] or model_names
+                name_b = st.selectbox("Model B", other_names, index=0)
+        else:
+            selected_name = st.selectbox(
+                "Select model",
+                model_names,
+                index=model_names.index(default_name),
+                label_visibility="collapsed",
+                help="View the SHAP-based feature importance for any of the evaluated models.",
+            )
 
-    with card():
-        section_title(f"{selected_name}: What Drives Its Predictions")
-        st.caption(
-            "Features are ranked by their average absolute effect on the predicted "
-            "length of stay, in days, across a sample of patients."
-        )
-        st.plotly_chart(_importance_chart(importance), width="stretch")
+    if compare_mode:
+        importance_a = _global_importance(package, name_a)
+        importance_b = _global_importance(package, name_b)
+        x_max = max(importance_a["Mean |SHAP value|"].max(), importance_b["Mean |SHAP value|"].max()) * 1.05
 
-    with st.expander("View Feature Importance Table"):
-        st.dataframe(importance, width="stretch", hide_index=True)
+        col_a, col_b = st.columns(2)
+        with col_a:
+            with card():
+                section_title(name_a)
+                st.plotly_chart(
+                    _importance_chart(importance_a, config.COLORS["primary"], x_max),
+                    width="stretch",
+                )
+        with col_b:
+            with card():
+                section_title(name_b)
+                st.plotly_chart(
+                    _importance_chart(importance_b, config.COLORS["accent"], x_max),
+                    width="stretch",
+                )
+
+        with st.expander("View Feature Importance Table"):
+            merged = importance_a.merge(
+                importance_b, on="Feature", suffixes=(f" ({name_a})", f" ({name_b})")
+            ).sort_values(f"Mean |SHAP value| ({name_a})", ascending=False)
+            st.dataframe(merged, width="stretch", hide_index=True)
+    else:
+        importance = _global_importance(package, selected_name)
+
+        with card():
+            section_title(f"{selected_name}: What Drives Its Predictions")
+            st.caption(
+                "Features are ranked by their average absolute effect on the predicted "
+                "length of stay, in days, across a sample of patients."
+            )
+            st.plotly_chart(_importance_chart(importance, config.COLORS["primary"]), width="stretch")
+
+        with st.expander("View Feature Importance Table"):
+            st.dataframe(importance, width="stretch", hide_index=True)

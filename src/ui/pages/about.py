@@ -95,14 +95,14 @@ def render() -> None:
             subtract a little for each detail (age, glucose, medical condition,
             and so on) based on how it compares to a typical patient. Add all of
             those up and you get back the model's final prediction for that
-            specific patient — so you can see not just *what* it predicted, but
+            specific patient, so you can see not just *what* it predicted, but
             *why*.
 
             Across this dataset, medical condition, glucose, stress level,
             HbA1c, blood pressure and sleep tend to matter most to the model,
             while smoking, alcohol use and gender tend to matter least. The
             **Prediction** page shows this breakdown for an individual
-            patient after each prediction — it's meant to support clinical
+            patient after each prediction. It's meant to support clinical
             judgement, not replace it.
             """
         )

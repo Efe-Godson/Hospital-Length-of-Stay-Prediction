@@ -81,6 +81,21 @@ _CSS = f"""
         transform: translateY(0);
     }}
 
+    /* Sidebar prediction-history entries */
+    section[data-testid="stSidebar"] .stButton > button {{
+        background: var(--clr-primary) !important;
+        color: white !important;
+        border: none !important;
+        text-align: left;
+        justify-content: flex-start;
+    }}
+    section[data-testid="stSidebar"] .stButton > button p {{
+        color: white !important;
+    }}
+    section[data-testid="stSidebar"] .stButton > button:hover {{
+        background: var(--clr-primary-light) !important;
+    }}
+
     /* Floating "Make a Prediction" button on the home page. */
     div[class*="st-key-floating_predict_btn"] {{
         position: fixed;

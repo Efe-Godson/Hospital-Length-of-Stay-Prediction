@@ -41,7 +41,7 @@ def _comparison_chart(df) -> go.Figure:
     )
     fig.update_layout(
         barmode="group",
-        xaxis_title="Error (days) — lower is better",
+        xaxis_title="Error (days), lower is better",
         yaxis_title="",
         height=320,
         margin=dict(l=10, r=10, t=10, b=10),
